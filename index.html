@@ -1039,7 +1039,7 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
                     </iframe>
                 </div>
                 <p style="margin-top:10px;color:var(--text-muted);font-size:0.8rem;">
-                    💡 Tip: <a href="../06_Wiring_Diagrams/spectre_interactive.html" target="_blank" style="color:var(--accent);">Open full-screen in new tab</a> for the best experience.
+                    💡 Tip: <a href="#" onclick="event.preventDefault();var f=document.querySelector('#tab-schema iframe');if(f){var w=window.open();w.document.write(f.getAttribute('srcdoc'));w.document.close();}" style="color:var(--accent);">Open full-screen in new tab</a> for the best experience.
                 </p>
             
             <!-- WALKTHROUGH -->
