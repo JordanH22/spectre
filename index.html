@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Project Spectre Dashboard</title>
     <style>
         /* ── Esoteric Sigil System ──────────────────────────────── */
@@ -268,9 +268,11 @@
             body { display: block; overflow-y: auto; height: auto; }
             h1 { font-size: 1.5rem; }
             .gallery-grid { grid-template-columns: 1fr; }
-            .board-visual { flex-direction: column; gap: 16px; padding: 16px; }
+            .board-visual { flex-direction: column; gap: 16px; padding: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
             .wire { width: 6px !important; height: 40px !important; }
-            .step-card { padding: 16px; }
+            .step-card { padding: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .tab-content img, .tab-content svg.tab-sigil { max-width: 100%; height: auto; }
+            .gallery-grid img { cursor: zoom-in; }
             .bom-item { grid-template-columns: 28px 38px 1fr; gap: 8px; }
             .bom-price { grid-column: 3; text-align: left; }
             .bom-actions { grid-column: 1 / -1; flex-direction: row; }
