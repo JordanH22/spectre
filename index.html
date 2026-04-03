@@ -80,39 +80,7 @@
             background: rgba(0,0,0,0.6); z-index: 998;
         }
         .mobile-overlay.show { display: block; }
-        /* ── Mobile Responsive ─────────────────────────────────── */
-        @media (max-width: 768px) {
-            .mobile-header { display: flex; }
-            .sidebar {
-                position: fixed; top: 0; left: -300px; bottom: 0;
-                width: 280px; z-index: 999;
-                transition: left 0.3s ease; padding-top: 70px;
-            }
-            .sidebar.open { left: 0; }
-            .main-content {
-                padding: 70px 16px 24px;
-            }
-            body { display: block; overflow-y: auto; height: auto; }
-            h1 { font-size: 1.5rem; }
-            .gallery-grid { grid-template-columns: 1fr; }
-            .board-visual { flex-direction: column; gap: 16px; padding: 16px; }
-            .wire { width: 6px !important; height: 40px !important; }
-            .step-card { padding: 16px; }
-            .bom-item { grid-template-columns: 28px 38px 1fr; gap: 8px; }
-            .bom-price { grid-column: 3; text-align: left; }
-            .bom-actions { grid-column: 1 / -1; flex-direction: row; }
-            .bom-filter { font-size: 10px; padding: 4px 8px; }
-            .sigil-hero { width: 120px; height: 120px; }
-            .sigil-sidebar { width: 48px; height: 48px; }
-            .tab-sigil { width: 50px; height: 50px; }
-            .tab-content { max-width: 100% !important; }
-            table { font-size: 12px; }
-            th, td { padding: 8px; }
-            .esoteric-divider { margin: 24px 0 16px; }
-            .wt-step { grid-template-columns: 32px 1fr; }
-            .wt-focus-btn { grid-column: 1 / -1; }
-            .component { padding: 12px; font-size: 12px; }
-        }
+
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
         
         :root {
@@ -160,6 +128,7 @@
             padding: 0 20px;
             background: linear-gradient(135deg, #fff 0%, #58a6ff 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -284,6 +253,39 @@
         .wt-focus-btn.ph3:hover { background:#3fb950;color:#000; }
         .wt-focus-btn.ph4 { border-color:#bc8cff;color:#bc8cff; }
         .wt-focus-btn.ph4:hover { background:#bc8cff;color:#000; }
+        /* ── Mobile Responsive ─────────────────────────────────── */
+        @media (max-width: 768px) {
+            .mobile-header { display: flex; }
+            .sidebar {
+                position: fixed; top: 0; left: -300px; bottom: 0;
+                width: 280px; z-index: 999;
+                transition: left 0.3s ease; padding-top: 70px;
+            }
+            .sidebar.open { left: 0; }
+            .main-content {
+                padding: 70px 16px 24px;
+            }
+            body { display: block; overflow-y: auto; height: auto; }
+            h1 { font-size: 1.5rem; }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .board-visual { flex-direction: column; gap: 16px; padding: 16px; }
+            .wire { width: 6px !important; height: 40px !important; }
+            .step-card { padding: 16px; }
+            .bom-item { grid-template-columns: 28px 38px 1fr; gap: 8px; }
+            .bom-price { grid-column: 3; text-align: left; }
+            .bom-actions { grid-column: 1 / -1; flex-direction: row; }
+            .bom-filter { font-size: 10px; padding: 4px 8px; }
+            .sigil-hero { width: 120px; height: 120px; }
+            .sigil-sidebar { width: 48px; height: 48px; }
+            .tab-sigil { width: 50px; height: 50px; }
+            .tab-content { max-width: 100% !important; }
+            table { font-size: 12px; }
+            th, td { padding: 8px; }
+            .esoteric-divider { margin: 24px 0 16px; }
+            .wt-step { grid-template-columns: 32px 1fr; }
+            .wt-focus-btn { grid-column: 1 / -1; }
+            .component { padding: 12px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
