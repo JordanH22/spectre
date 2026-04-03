@@ -40,6 +40,79 @@
             text-align: center; margin-top: -5px; margin-bottom: 20px;
             opacity: 0.5; font-weight: 600;
         }
+        .tab-sigil {
+            width: 80px; height: 80px;
+            margin: 0 auto 20px;
+            opacity: 0.15;
+            animation: sigil-rotate 90s linear infinite;
+        }
+        .tab-subtitle {
+            font-size: 12px; color: var(--text-muted); letter-spacing: 3px;
+            text-transform: uppercase; margin-top: -10px; margin-bottom: 30px;
+            opacity: 0.5; font-weight: 600;
+        }
+        .tab-footer-glyph {
+            text-align: center; margin-top: 48px; font-size: 11px;
+            color: var(--text-muted); letter-spacing: 4px; opacity: 0.3;
+        }
+        /* ── Mobile Hamburger ──────────────────────────────────── */
+        .mobile-header {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: var(--bg-panel); border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            align-items: center; justify-content: space-between;
+        }
+        .mobile-header .logo { font-size: 1.2rem; margin-bottom: 0; }
+        .hamburger {
+            width: 32px; height: 32px; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; gap: 5px;
+        }
+        .hamburger span {
+            width: 100%; height: 2px; background: var(--text-main);
+            transition: all 0.3s; border-radius: 2px;
+        }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+        .mobile-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 998;
+        }
+        .mobile-overlay.show { display: block; }
+        /* ── Mobile Responsive ─────────────────────────────────── */
+        @media (max-width: 768px) {
+            .mobile-header { display: flex; }
+            .sidebar {
+                position: fixed; top: 0; left: -300px; bottom: 0;
+                width: 280px; z-index: 999;
+                transition: left 0.3s ease; padding-top: 70px;
+            }
+            .sidebar.open { left: 0; }
+            .main-content {
+                padding: 70px 16px 24px;
+            }
+            body { display: block; overflow-y: auto; height: auto; }
+            h1 { font-size: 1.5rem; }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .board-visual { flex-direction: column; gap: 16px; padding: 16px; }
+            .wire { width: 6px !important; height: 40px !important; }
+            .step-card { padding: 16px; }
+            .bom-item { grid-template-columns: 28px 38px 1fr; gap: 8px; }
+            .bom-price { grid-column: 3; text-align: left; }
+            .bom-actions { grid-column: 1 / -1; flex-direction: row; }
+            .bom-filter { font-size: 10px; padding: 4px 8px; }
+            .sigil-hero { width: 120px; height: 120px; }
+            .sigil-sidebar { width: 48px; height: 48px; }
+            .tab-sigil { width: 50px; height: 50px; }
+            .tab-content { max-width: 100% !important; }
+            table { font-size: 12px; }
+            th, td { padding: 8px; }
+            .esoteric-divider { margin: 24px 0 16px; }
+            .wt-step { grid-template-columns: 32px 1fr; }
+            .wt-focus-btn { grid-column: 1 / -1; }
+            .component { padding: 12px; font-size: 12px; }
+        }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
         
         :root {
@@ -218,7 +291,16 @@
     <!-- This file is self-contained. No other files required. -->
 
 
-    <div class="sidebar">
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="logo">SPECTRE</div>
+        <div class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
+
+    <div class="sidebar" id="sidebar">
         <!-- ◎ Abraxas Sigil -->
         <svg class="sigil-sidebar" viewBox="0 0 100 140" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Crown -->
@@ -350,8 +432,24 @@
 
         <!-- MASTER SCHEMATIC TAB -->
         <div id="tab-schema" class="tab-content">
-            <h1>Master Architectural Schematic</h1>
-            <p>The complete logical and physical node-map of the Spectre framework.</p>
+            <!-- ◎ Tracing Board Sigil — Triple Tau -->
+            <svg class="tab-sigil" viewBox="0 0 100 100" fill="none">
+                <circle cx="50" cy="50" r="46" stroke="#58a6ff" stroke-width="0.8" fill="none"/>
+                <circle cx="50" cy="50" r="38" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.4"/>
+                <line x1="50" y1="12" x2="50" y2="88" stroke="#58a6ff" stroke-width="1"/>
+                <line x1="20" y1="50" x2="80" y2="50" stroke="#58a6ff" stroke-width="1"/>
+                <line x1="50" y1="50" x2="50" y2="12" stroke="#58a6ff" stroke-width="1.5"/>
+                <line x1="26" y1="30" x2="74" y2="70" stroke="#58a6ff" stroke-width="0.5" opacity="0.3"/>
+                <line x1="74" y1="30" x2="26" y2="70" stroke="#58a6ff" stroke-width="0.5" opacity="0.3"/>
+                <circle cx="50" cy="50" r="4" fill="#58a6ff" opacity="0.4"/>
+                <!-- T letters (Triple Tau) -->
+                <line x1="35" y1="52" x2="35" y2="68" stroke="#58a6ff" stroke-width="1"/>
+                <line x1="28" y1="52" x2="42" y2="52" stroke="#58a6ff" stroke-width="1"/>
+                <line x1="65" y1="52" x2="65" y2="68" stroke="#58a6ff" stroke-width="1"/>
+                <line x1="58" y1="52" x2="72" y2="52" stroke="#58a6ff" stroke-width="1"/>
+            </svg>
+            <h1>The Tracing Board</h1>
+            <p class="tab-subtitle">The complete logical and physical node-map of the Spectre framework</p>
             
             <div class="step-card" style="text-align: center; overflow: hidden;">
                 <h3 style="margin-bottom: 20px;">Logic Node Map</h3>
@@ -1245,8 +1343,25 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
 
         <!-- ── INSTALLATION WALKTHROUGH ──────────────────────────────────── -->
         <div id="tab-wiring" class="tab-content">
-            <h1>Lego Wiring Guide</h1>
-            <p>Visual block representation of the physical electrical connections.</p>
+            <!-- ◎ Boaz & Jachin Sigil — Twin Pillars -->
+            <svg class="tab-sigil" viewBox="0 0 100 100" fill="none">
+                <rect x="18" y="20" width="14" height="60" stroke="#58a6ff" stroke-width="0.8" fill="none"/>
+                <rect x="68" y="20" width="14" height="60" stroke="#58a6ff" stroke-width="0.8" fill="none"/>
+                <rect x="15" y="15" width="20" height="8" stroke="#58a6ff" stroke-width="0.6" fill="none"/>
+                <rect x="65" y="15" width="20" height="8" stroke="#58a6ff" stroke-width="0.6" fill="none"/>
+                <circle cx="25" cy="12" r="4" stroke="#58a6ff" stroke-width="0.5" fill="none"/>
+                <circle cx="75" cy="12" r="4" stroke="#58a6ff" stroke-width="0.5" fill="none"/>
+                <line x1="25" y1="80" x2="75" y2="80" stroke="#58a6ff" stroke-width="0.4" opacity="0.4"/>
+                <path d="M32,20 Q50,5 68,20" stroke="#58a6ff" stroke-width="0.5" fill="none" opacity="0.3"/>
+                <!-- Square & Compasses hint -->
+                <line x1="42" y1="45" x2="50" y2="60" stroke="#58a6ff" stroke-width="0.6" opacity="0.5"/>
+                <line x1="58" y1="45" x2="50" y2="60" stroke="#58a6ff" stroke-width="0.6" opacity="0.5"/>
+                <rect x="44" y="55" width="12" height="12" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <text x="25" y="92" font-size="6" fill="#58a6ff" text-anchor="middle" font-family="monospace" opacity="0.5">B</text>
+                <text x="75" y="92" font-size="6" fill="#58a6ff" text-anchor="middle" font-family="monospace" opacity="0.5">J</text>
+            </svg>
+            <h1>The Cable of Tow</h1>
+            <p class="tab-subtitle">Visual block representation of the sacred electrical connections</p>
 
             <div class="step-card">
                 <h3><span class="badge-num">1</span> Main Power (VCC & GND)</h3>
@@ -1292,12 +1407,31 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
                 </div>
                 <p><strong>Action:</strong> Lift the black latch on the Pi, slide the flat ribbon cable in (metal contacts facing board), and click the latch down. Simple as Lego.</p>
             </div>
+            <!-- Esoteric divider -->
+            <div class="esoteric-divider">
+                <div class="line"></div>
+                <svg viewBox="0 0 30 30"><line x1="15" y1="2" x2="15" y2="28" stroke="#58a6ff" stroke-width="0.8"/><line x1="2" y1="15" x2="28" y2="15" stroke="#58a6ff" stroke-width="0.8"/><circle cx="15" cy="15" r="8" stroke="#58a6ff" stroke-width="0.6" fill="none"/></svg>
+                <div class="line"></div>
+            </div>
+            <p class="tab-footer-glyph">BOAZ · JACHIN · THE CABLE OF TOW</p>
         </div>
 
         <!-- FUSEBOX WIRING TAB -->
         <div id="tab-fuse" class="tab-content">
-            <h1>Fusebox Integration Walkthrough</h1>
-            <p>How to safely extract power from the 2017 VW Scirocco driver-side fusebox without cutting factory wires.</p>
+            <!-- ◎ Prometheus Sigil — Stolen Fire -->
+            <svg class="tab-sigil" viewBox="0 0 100 100" fill="none">
+                <polygon points="50,10 85,75 15,75" stroke="#f85149" stroke-width="1" fill="none"/>
+                <polygon points="50,25 72,68 28,68" stroke="#d29922" stroke-width="0.6" fill="none" opacity="0.5"/>
+                <!-- Flame -->
+                <path d="M50,35 Q55,45 50,55 Q45,45 50,35" stroke="#f85149" stroke-width="0.8" fill="none"/>
+                <path d="M47,40 Q50,48 53,40" stroke="#d29922" stroke-width="0.5" fill="none" opacity="0.6"/>
+                <circle cx="50" cy="50" r="3" fill="#f85149" opacity="0.3"/>
+                <!-- Lightning bolts -->
+                <polyline points="35,30 38,40 33,40 36,50" stroke="#d29922" stroke-width="0.6" fill="none" opacity="0.4"/>
+                <polyline points="65,30 62,40 67,40 64,50" stroke="#d29922" stroke-width="0.6" fill="none" opacity="0.4"/>
+            </svg>
+            <h1>Prometheus</h1>
+            <p class="tab-subtitle">Stealing fire from the fusebox — safely extracting power without cutting factory wires</p>
 
             <div class="gallery-grid">
                 <div class="gallery-card">
@@ -1340,11 +1474,38 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
                     <li>Zip-tie the red and black wires together and run them behind the radio console over to the passenger glovebox opening.</li>
                 </ul>
             </div>
+            <!-- Esoteric divider -->
+            <div class="esoteric-divider">
+                <div class="line"></div>
+                <svg viewBox="0 0 30 30"><polygon points="15,4 26,26 4,26" stroke="#f85149" stroke-width="0.8" fill="none"/><circle cx="15" cy="20" r="3" fill="#f85149" opacity="0.3"/></svg>
+                <div class="line"></div>
+            </div>
+            <p class="tab-footer-glyph">PROMETHEUS · STOLEN FIRE · ΠΥΡ</p>
         </div>
 
         <!-- INSTALLATION TAB -->
         <div id="tab-install" class="tab-content">
-            <h1>Installation Walkthrough</h1>
+            <!-- ◎ Winding Staircase Sigil -->
+            <svg class="tab-sigil" viewBox="0 0 100 100" fill="none">
+                <rect x="35" y="10" width="30" height="80" stroke="#58a6ff" stroke-width="0.6" fill="none" opacity="0.3"/>
+                <!-- Steps -->
+                <line x1="35" y1="80" x2="65" y2="80" stroke="#3fb950" stroke-width="1"/>
+                <line x1="38" y1="70" x2="62" y2="70" stroke="#3fb950" stroke-width="0.8"/>
+                <line x1="40" y1="60" x2="60" y2="60" stroke="#3fb950" stroke-width="0.8"/>
+                <line x1="42" y1="50" x2="58" y2="50" stroke="#d29922" stroke-width="0.8"/>
+                <line x1="43" y1="40" x2="57" y2="40" stroke="#d29922" stroke-width="0.6"/>
+                <line x1="44" y1="30" x2="56" y2="30" stroke="#bc8cff" stroke-width="0.6"/>
+                <line x1="46" y1="20" x2="54" y2="20" stroke="#bc8cff" stroke-width="0.4"/>
+                <!-- All-seeing eye at top -->
+                <circle cx="50" cy="12" r="4" stroke="#58a6ff" stroke-width="0.6" fill="none"/>
+                <circle cx="50" cy="12" r="1.5" fill="#58a6ff" opacity="0.4"/>
+                <!-- Numbers -->
+                <text x="30" y="83" font-size="5" fill="#3fb950" font-family="monospace" opacity="0.5">1</text>
+                <text x="30" y="63" font-size="5" fill="#3fb950" font-family="monospace" opacity="0.5">3</text>
+                <text x="30" y="43" font-size="5" fill="#d29922" font-family="monospace" opacity="0.5">5</text>
+                <text x="30" y="23" font-size="5" fill="#bc8cff" font-family="monospace" opacity="0.5">7</text>
+            </svg>
+            <h1>The Winding Staircase</h1>
             
             <div class="step-card">
                 <h3><span class="badge-num">1</span> Disassemble Glovebox</h3>
@@ -1381,11 +1542,28 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
                     <li>Leave 10cm of slack at the top to plug into the 3D-printed IMX307 stealth housings.</li>
                 </ul>
             </div>
+            <!-- Esoteric divider -->
+            <div class="esoteric-divider">
+                <div class="line"></div>
+                <svg viewBox="0 0 30 30"><line x1="10" y1="25" x2="20" y2="5" stroke="#3fb950" stroke-width="0.8"/><line x1="10" y1="25" x2="25" y2="25" stroke="#3fb950" stroke-width="0.8"/><line x1="25" y1="25" x2="20" y2="5" stroke="#3fb950" stroke-width="0.8"/></svg>
+                <div class="line"></div>
+            </div>
+            <p class="tab-footer-glyph">3 · 5 · 7 · THE WINDING STAIRCASE</p>
         </div>
 
         <!-- 3D CONCEPTS TAB -->
         <div id="tab-concept" class="tab-content">
-            <h1>3D Print & Hardware Visuals</h1>
+            <!-- ◎ Hephaestus Sigil — Divine Forge -->
+            <svg class="tab-sigil" viewBox="0 0 100 100" fill="none">
+                <polygon points="50,10 90,35 90,65 50,90 10,65 10,35" stroke="#d29922" stroke-width="0.8" fill="none"/>
+                <polygon points="50,20 78,38 78,62 50,80 22,62 22,38" stroke="#d29922" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <rect x="38" y="48" width="24" height="10" rx="2" stroke="#d29922" stroke-width="0.8" fill="none"/>
+                <line x1="50" y1="32" x2="50" y2="42" stroke="#d29922" stroke-width="0.6"/>
+                <rect x="44" y="28" width="12" height="5" rx="1" stroke="#d29922" stroke-width="0.6" fill="none"/>
+                <circle cx="35" cy="45" r="1" fill="#d29922" opacity="0.4"/>
+                <circle cx="65" cy="45" r="1" fill="#d29922" opacity="0.4"/>
+            </svg>
+            <h1>The Forge of Hephaestus</h1>
             
             <div class="step-card" style="border-color: var(--warning); text-align: center; padding: 50px 20px;">
                 <h3 style="color: var(--warning); justify-content: center;">⚠️ Awaiting Physical Vehicle Mockups</h3>
@@ -1395,11 +1573,34 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
                     <strong>Next Step:</strong> Take real photographs of your interior (rearview mirror, B-pillars, and hatch trim) and draw markup lines where you want the housings. We will use those exact references to begin the Fusion360 CAD designs.
                 </p>
             </div>
+            <div class="esoteric-divider">
+                <div class="line"></div>
+                <svg viewBox="0 0 30 30"><polygon points="15,3 28,15 15,27 2,15" stroke="#d29922" stroke-width="0.8" fill="none"/><circle cx="15" cy="15" r="3" stroke="#d29922" stroke-width="0.5" fill="none"/></svg>
+                <div class="line"></div>
+            </div>
+            <p class="tab-footer-glyph">HEPHAESTUS · DIVINE FORGE · ΗΦΑΙΣΤΟΣ</p>
         </div>
 
         <!-- MASTER BOM TAB -->
         <div id="tab-bom" class="tab-content">
-            <h1>Master Shopping List</h1>
+            <!-- ◎ Quarry Sigil — Rough Ashlar to Perfect -->
+            <svg class="tab-sigil" viewBox="0 0 100 100" fill="none">
+                <!-- Rough ashlar -->
+                <polygon points="15,70 15,45 30,42 35,65 22,72" stroke="#8b949e" stroke-width="0.8" fill="none"/>
+                <!-- Arrow -->
+                <line x1="42" y1="55" x2="56" y2="55" stroke="#58a6ff" stroke-width="0.6"/>
+                <polyline points="53,51 58,55 53,59" stroke="#58a6ff" stroke-width="0.6" fill="none"/>
+                <!-- Perfect ashlar -->
+                <rect x="62" y="42" width="25" height="25" stroke="#3fb950" stroke-width="1" fill="none"/>
+                <line x1="62" y1="42" x2="72" y2="32" stroke="#3fb950" stroke-width="0.5" opacity="0.4"/>
+                <line x1="87" y1="42" x2="97" y2="32" stroke="#3fb950" stroke-width="0.5" opacity="0.4"/>
+                <line x1="72" y1="32" x2="97" y2="32" stroke="#3fb950" stroke-width="0.5" opacity="0.4"/>
+                <line x1="87" y1="67" x2="97" y2="57" stroke="#3fb950" stroke-width="0.5" opacity="0.4"/>
+                <line x1="97" y1="32" x2="97" y2="57" stroke="#3fb950" stroke-width="0.5" opacity="0.4"/>
+                <!-- Working tools -->
+                <text x="50" y="90" font-size="6" fill="#58a6ff" text-anchor="middle" font-family="monospace" opacity="0.4">ROUGH → PERFECT</text>
+            </svg>
+            <h1>The Quarry</h1>
 
             <!-- Toolbar -->
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px;">
@@ -1861,6 +2062,24 @@ window.addEventListener(&#x27;message&#x27;, function(e) {
                 }
             }, 200);
         }
+
+        // ── Mobile hamburger ──────────────────────────────────────────────
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            const hamburger = document.getElementById('hamburger');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            hamburger.classList.toggle('open');
+        }
+        // Close mobile menu when nav item clicked
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
 
         // Initial BOM total
         bomFilter('phase', 'all', null);
