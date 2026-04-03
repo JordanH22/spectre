@@ -5,6 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Spectre Dashboard</title>
     <style>
+        /* ── Esoteric Sigil System ──────────────────────────────── */
+        .sigil-sidebar {
+            width: 64px; height: 64px;
+            margin: 0 auto 8px;
+            opacity: 0.7;
+            animation: sigil-breathe 6s ease-in-out infinite;
+        }
+        @keyframes sigil-breathe {
+            0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 2px rgba(88,166,255,0.3)); }
+            50% { opacity: 0.85; filter: drop-shadow(0 0 12px rgba(88,166,255,0.6)); }
+        }
+        .sigil-hero {
+            width: 200px; height: 200px;
+            margin: 0 auto 30px;
+            opacity: 0.12;
+            animation: sigil-rotate 120s linear infinite;
+        }
+        @keyframes sigil-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .esoteric-divider {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin: 48px 0 32px; opacity: 0.25;
+        }
+        .esoteric-divider svg { width: 28px; height: 28px; }
+        .esoteric-divider .line {
+            flex: 1; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+        .sidebar-motto {
+            font-size: 8px; letter-spacing: 3px; color: var(--text-muted);
+            text-align: center; margin-top: -5px; margin-bottom: 20px;
+            opacity: 0.5; font-weight: 600;
+        }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
         
         :root {
@@ -184,20 +219,89 @@
 
 
     <div class="sidebar">
+        <!-- ◎ Abraxas Sigil -->
+        <svg class="sigil-sidebar" viewBox="0 0 100 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Crown -->
+            <polygon points="50,2 38,18 45,18 35,26 65,26 55,18 62,18" stroke="#58a6ff" stroke-width="1.2" fill="none"/>
+            <!-- Pentagon body -->
+            <polygon points="35,30 20,60 30,88 70,88 80,60 65,30" stroke="#58a6ff" stroke-width="1" fill="none"/>
+            <!-- Inner facets -->
+            <line x1="35" y1="30" x2="70" y2="88" stroke="#58a6ff" stroke-width="0.4" opacity="0.5"/>
+            <line x1="65" y1="30" x2="30" y2="88" stroke="#58a6ff" stroke-width="0.4" opacity="0.5"/>
+            <line x1="20" y1="60" x2="80" y2="60" stroke="#58a6ff" stroke-width="0.4" opacity="0.5"/>
+            <!-- Aperture eye -->
+            <circle cx="50" cy="58" r="14" stroke="#58a6ff" stroke-width="1" fill="none"/>
+            <circle cx="50" cy="58" r="8" stroke="#58a6ff" stroke-width="0.6" fill="none"/>
+            <line x1="50" y1="44" x2="50" y2="50" stroke="#58a6ff" stroke-width="0.8"/>
+            <line x1="50" y1="66" x2="50" y2="72" stroke="#58a6ff" stroke-width="0.8"/>
+            <line x1="36" y1="58" x2="42" y2="58" stroke="#58a6ff" stroke-width="0.8"/>
+            <line x1="58" y1="58" x2="64" y2="58" stroke="#58a6ff" stroke-width="0.8"/>
+            <!-- Aperture blades -->
+            <line x1="43" y1="49" x2="47" y2="53" stroke="#58a6ff" stroke-width="0.6"/>
+            <line x1="57" y1="49" x2="53" y2="53" stroke="#58a6ff" stroke-width="0.6"/>
+            <line x1="43" y1="67" x2="47" y2="63" stroke="#58a6ff" stroke-width="0.6"/>
+            <line x1="57" y1="67" x2="53" y2="63" stroke="#58a6ff" stroke-width="0.6"/>
+            <!-- Serpent legs (DNA helix) -->
+            <path d="M42,88 Q38,98 44,108 Q50,118 44,128" stroke="#58a6ff" stroke-width="1" fill="none"/>
+            <path d="M58,88 Q62,98 56,108 Q50,118 56,128" stroke="#58a6ff" stroke-width="1" fill="none"/>
+            <line x1="42" y1="96" x2="58" y2="96" stroke="#58a6ff" stroke-width="0.4" opacity="0.3"/>
+            <line x1="44" y1="106" x2="56" y2="106" stroke="#58a6ff" stroke-width="0.4" opacity="0.3"/>
+            <line x1="42" y1="116" x2="58" y2="116" stroke="#58a6ff" stroke-width="0.4" opacity="0.3"/>
+            <!-- Spiral feet -->
+            <path d="M44,128 Q38,134 42,138" stroke="#58a6ff" stroke-width="0.8" fill="none"/>
+            <path d="M56,128 Q62,134 58,138" stroke="#58a6ff" stroke-width="0.8" fill="none"/>
+        </svg>
         <div class="logo">SPECTRE</div>
+        <div class="sidebar-motto">VIDET OMNIA</div>
         <div class="nav-item active" onclick="showTab('tab-overview')">🚀 Executive Overview</div>
-        <div class="nav-item" onclick="showTab('tab-schema')">🕸 Master Schematic</div>
+        <div class="nav-item" onclick="showTab('tab-schema')">🕸 The Tracing Board</div>
         <div class="nav-item" onclick="showTab('tab-wiring')">🔌 Lego Wiring Guide</div>
-        <div class="nav-item" onclick="showTab('tab-fuse')">⚡️ Fusebox Walkthrough</div>
-        <div class="nav-item" onclick="showTab('tab-install')">🛠 Installation SOP</div>
+        <div class="nav-item" onclick="showTab('tab-fuse')">⚡️ Prometheus</div>
+        <div class="nav-item" onclick="showTab('tab-install')">🛠 The Winding Staircase</div>
         <div class="nav-item" onclick="showTab('tab-concept')">🖨 3D Concepts</div>
-        <div class="nav-item" onclick="showTab('tab-bom')">🛒 Master BOM</div>
+        <div class="nav-item" onclick="showTab('tab-bom')">🛒 The Quarry</div>
     </div>
 
     <div class="main-content">
         
         <!-- OVERVIEW TAB -->
         <div id="tab-overview" class="tab-content active">
+            <!-- ◎ Sacred Geometry Hero — Euclid 47 + Aperture → slow rotation -->
+            <svg class="sigil-hero" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Outer heptagon -->
+                <polygon points="100,8 161,30 189,88 175,152 127,190 73,190 25,152 11,88 39,30" stroke="#58a6ff" stroke-width="0.6" fill="none"/>
+                <!-- 3-4-5 triangle -->
+                <polygon points="60,140 140,140 140,80" stroke="#58a6ff" stroke-width="1" fill="none"/>
+                <!-- Squares on sides -->
+                <rect x="60" y="140" width="80" height="20" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.4"/>
+                <polygon points="140,140 160,130 160,70 140,80" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.4"/>
+                <!-- Construction lines -->
+                <line x1="60" y1="140" x2="160" y2="70" stroke="#58a6ff" stroke-width="0.3" opacity="0.2"/>
+                <line x1="140" y1="140" x2="73" y2="80" stroke="#58a6ff" stroke-width="0.3" opacity="0.2"/>
+                <line x1="100" y1="30" x2="100" y2="170" stroke="#58a6ff" stroke-width="0.2" opacity="0.15"/>
+                <line x1="30" y1="110" x2="170" y2="110" stroke="#58a6ff" stroke-width="0.2" opacity="0.15"/>
+                <!-- Vertex dots -->
+                <circle cx="60" cy="140" r="2" fill="#58a6ff" opacity="0.5"/>
+                <circle cx="140" cy="140" r="2" fill="#58a6ff" opacity="0.5"/>
+                <circle cx="140" cy="80" r="2" fill="#58a6ff" opacity="0.5"/>
+                <!-- Aperture at right angle vertex -->
+                <circle cx="140" cy="140" r="12" stroke="#58a6ff" stroke-width="0.8" fill="none"/>
+                <circle cx="140" cy="140" r="6" stroke="#58a6ff" stroke-width="0.5" fill="none"/>
+                <line x1="140" y1="128" x2="140" y2="134" stroke="#58a6ff" stroke-width="0.6"/>
+                <line x1="140" y1="146" x2="140" y2="152" stroke="#58a6ff" stroke-width="0.6"/>
+                <line x1="128" y1="140" x2="134" y2="140" stroke="#58a6ff" stroke-width="0.6"/>
+                <line x1="146" y1="140" x2="152" y2="140" stroke="#58a6ff" stroke-width="0.6"/>
+                <!-- Heptagon vertex circles -->
+                <circle cx="100" cy="8" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <circle cx="161" cy="30" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <circle cx="189" cy="88" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <circle cx="175" cy="152" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <circle cx="127" cy="190" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <circle cx="73" cy="190" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <circle cx="25" cy="152" r="3" stroke="#58a6ff" stroke-width="0.4" fill="none" opacity="0.3"/>
+                <!-- Fibonacci spiral hint -->
+                <path d="M100,100 Q120,100 120,80 Q120,60 100,60 Q70,60 70,90 Q70,130 110,130 Q160,130 160,80" stroke="#58a6ff" stroke-width="0.3" fill="none" opacity="0.2"/>
+            </svg>
             <h1>Project Spectre Dashboard</h1>
             <p style="font-size: 1.2rem; line-height: 1.6;">
                 Welcome to the Master Hub for the 2017 VW Scirocco Stealth Dashcam system.
@@ -210,14 +314,38 @@
                     <p>Total visual suppression. Cameras hide behind factory trim and mirrors.</p>
                 </div>
                 <div class="step-card">
-                    <h3>⚡️ Supremacy Hardware</h3>
-                    <p>Raspberry Pi CM5, Sony IMX678 4K, NVMe SSD, and 10Gbps USB 3.2 Gen 2.</p>
+                    <h3>⚡️ Prometheus</h3>
+                    <p>Stolen fire from the fusebox. Pi CM5, Sony IMX678 4K, NVMe SSD, 10Gbps USB 3.2 Gen 2.</p>
                 </div>
                 <div class="step-card">
-                    <h3>☁️ Telemetry Sync</h3>
-                    <p>Tailscale VPN over Quectel 4G to Hetzner VPS servers instantly.</p>
+                    <h3>☁️ Hermes</h3>
+                    <p>The messenger — Tailscale VPN over Quectel 4G to Hetzner Watchtower instantly.</p>
                 </div>
             </div>
+
+            <!-- Esoteric divider -->
+            <div class="esoteric-divider">
+                <div class="line"></div>
+                <svg viewBox="0 0 30 30"><polygon points="15,2 28,28 2,28" stroke="#58a6ff" stroke-width="1" fill="none"/><circle cx="15" cy="18" r="4" stroke="#58a6ff" stroke-width="0.8" fill="none"/></svg>
+                <div class="line"></div>
+            </div>
+
+            <div class="gallery-grid">
+                <div class="step-card" style="border-left: 3px solid #d4a017;">
+                    <h3 style="color: #d4a017;">◎ The Monad</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">The Raspberry Pi CM5 — single source of all processing. From the one, the many emanate through the USB Hydra.</p>
+                </div>
+                <div class="step-card" style="border-left: 3px solid #bc8cff;">
+                    <h3 style="color: #bc8cff;">△ Sophia & Nyx</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">STARVIS 2 sensors — the primary emanation. They see in darkness. The goddess of night weaponised as photons.</p>
+                </div>
+                <div class="step-card" style="border-left: 3px solid #f85149;">
+                    <h3 style="color: #f85149;">▽ Cerberus</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Motion-triggered sentry mode. The three-headed hound guards the gate when the ignition dies. 72+ hours on Ambrosia.</p>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 48px; font-size: 11px; color: var(--text-muted); letter-spacing: 4px; opacity: 0.35;">ΑΒΡΑΞΑΣ · ΣΑΒΑΩΘ · ΙΑΩ</p>
         </div>
 
         <!-- MASTER SCHEMATIC TAB -->
