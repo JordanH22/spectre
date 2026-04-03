@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Spectre Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
+        
+        :root {
+            --bg-dark: #0d1117;
+            --bg-panel: #161b22;
+            --bg-hover: #21262d;
+            --accent: #58a6ff;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --border: #30363d;
+            --danger: #f85149;
+            --success: #3fb950;
+            --warning: #d29922;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            background: linear-gradient(135deg, #fff 0%, #58a6ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background-color: var(--bg-hover);
+            color: #fff;
+            border-left-color: var(--accent);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) var(--bg-dark);
+        }
+
+        .tab-content { display: none; max-width: 1000px; margin: 0 auto; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { font-size: 2.5rem; font-weight: 800; margin-top: 0; color: #fff; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+        h2 { color: var(--accent); margin-top: 40px; }
+
+        /* Wiring Lego CSS */
+        .board-visual { background: #0d1117; padding: 30px; border-radius: 12px; border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; gap: 40px; margin: 20px 0; }
+        .component { background: #21262d; border: 2px solid #555; padding: 20px; border-radius: 8px; text-align: center; font-weight: 700; position: relative; }
+        .pin { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin: 5px; border: 2px solid #fff; }
+        .wire { height: 6px; width: 60px; border-radius: 3px; position: relative; display: flex; align-items: center; justify-content: center;}
+        
+        .c-red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .c-yellow { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
+        .c-blue { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .c-black { background: #555; border: 1px solid #777; }
+
+        .step-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 30px; }
+        .step-card h3 { margin-top: 0; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .badge-num { background: var(--accent); color: #000; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+
+        /* Gallery */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .gallery-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .gallery-img { width: 100%; height: auto; display: block; border-bottom: 1px solid var(--border); }
+        .gallery-cap { padding: 15px; text-align: center; font-weight: 600; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--bg-hover); color: #fff; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* BOM Cards */
+        .bom-filter { padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-hover);color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s; }
+        .bom-filter:hover { background:var(--bg-panel);color:#fff; }
+        .bom-filter.active { background:#1f6feb22;border-color:var(--accent);color:var(--accent); }
+        .bom-item { display:grid;grid-template-columns:28px 38px 1fr auto auto;align-items:center;gap:12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .18s; }
+        .bom-item:hover { border-color:var(--accent); }
+        .bom-item.ordered { opacity:0.45; }
+        .bom-check input { width:16px;height:16px;cursor:pointer;accent-color:var(--accent); }
+        .bom-icon { font-size:1.5rem;line-height:1; }
+        .bom-name { font-weight:700;font-size:14px;margin-bottom:4px; }
+        .bom-spec { font-size:12px;color:var(--text-muted);line-height:1.5; }
+        .bom-tags { display:flex;gap:6px;margin-top:6px;flex-wrap:wrap; }
+        .bom-price { font-size:1.1rem;font-weight:800;color:var(--accent);white-space:nowrap;text-align:right; }
+        .bom-actions { display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:100px; }
+        .bom-btn-schema { padding:6px 10px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;text-align:center; }
+        .bom-btn-schema:hover { background:var(--accent);color:#000; }
+        .bom-btn-buy { display:block;padding:6px 10px;border-radius:6px;background:var(--success);color:#000;font-size:11px;font-weight:700;text-decoration:none;text-align:center;transition:opacity .18s; }
+        .bom-btn-buy:hover { opacity:0.85; }
+        .tag-phase1 { font-size:10px;padding:2px 7px;border-radius:8px;background:#238636;color:#fff;font-weight:600; }
+        .tag-phase2 { font-size:10px;padding:2px 7px;border-radius:8px;background:#9e6a03;color:#fff;font-weight:600; }
+        .tag-cat { font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-hover);color:var(--text-muted);font-weight:600; }
+        .tag-where { font-size:10px;padding:2px 7px;border-radius:8px;background:#1f6feb22;color:var(--accent);font-weight:600; }
+
+
+        /* ── Walkthrough steps ─────────────────────────────────────────────── */
+        .wt-step { display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:start;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:9px;transition:border-color .2s; }
+        .wt-step:hover { border-color:var(--accent); }
+        .wt-step.ph2:hover { border-color:#9e6a03; }
+        .wt-step.ph3:hover { border-color:#3fb950; }
+        .wt-step.ph4:hover { border-color:#bc8cff; }
+        .wt-step-num { width:32px;height:32px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.85rem;flex-shrink:0; }
+        .wt-step.ph2 .wt-step-num { background:#9e6a03;color:#fff; }
+        .wt-step.ph3 .wt-step-num { background:#3fb950;color:#000; }
+        .wt-step.ph4 .wt-step-num { background:#bc8cff;color:#000; }
+        .wt-step-title { font-weight:800;font-size:0.9rem;margin-bottom:5px; }
+        .wt-step-text { font-size:0.81rem;color:var(--text-muted);line-height:1.7; }
+        .wt-step-text strong { color:#e6edf3; }
+        .wt-node { color:var(--accent);font-weight:700;cursor:pointer;border-bottom:1px dashed var(--accent);transition:opacity .15s; }
+        .wt-node:hover { opacity:0.7; }
+        .wt-step-tags { display:flex;gap:5px;flex-wrap:wrap;margin-top:8px; }
+        .wt-tag { font-size:10px;padding:2px 7px;border-radius:8px;background:var(--bg-hover);color:var(--text-muted);font-weight:600; }
+        .wt-tag.red { background:#f851491a;color:#f85149; }
+        .wt-tag.blue { background:#1f6feb22;color:#58a6ff; }
+        .wt-tag.green { background:#23863622;color:#3fb950; }
+        .wt-tag.orange { background:#9e6a0322;color:#d29922; }
+        .wt-tag.purple { background:#bc8cff22;color:#bc8cff; }
+        .wt-focus-btn { padding:7px 12px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap;align-self:center; }
+        .wt-focus-btn:hover { background:var(--accent);color:#000; }
+        .wt-focus-btn.ph2 { border-color:#9e6a03;color:#9e6a03; }
+        .wt-focus-btn.ph2:hover { background:#9e6a03;color:#fff; }
+        .wt-focus-btn.ph3 { border-color:#3fb950;color:#3fb950; }
+        .wt-focus-btn.ph3:hover { background:#3fb950;color:#000; }
+        .wt-focus-btn.ph4 { border-color:#bc8cff;color:#bc8cff; }
+        .wt-focus-btn.ph4:hover { background:#bc8cff;color:#000; }
+    </style>
+</head>
+<body>
+    <!-- STANDALONE BUILD — generated by tools/bundle_standalone.py -->
+    <!-- This file is self-contained. No other files required. -->
+
+
+    <div class="sidebar">
+        <div class="logo">SPECTRE</div>
+        <div class="nav-item active" onclick="showTab('tab-overview')">🚀 Executive Overview</div>
+        <div class="nav-item" onclick="showTab('tab-schema')">🕸 Master Schematic</div>
+        <div class="nav-item" onclick="showTab('tab-wiring')">🔌 Lego Wiring Guide</div>
+        <div class="nav-item" onclick="showTab('tab-fuse')">⚡️ Fusebox Walkthrough</div>
+        <div class="nav-item" onclick="showTab('tab-install')">🛠 Installation SOP</div>
+        <div class="nav-item" onclick="showTab('tab-concept')">🖨 3D Concepts</div>
+        <div class="nav-item" onclick="showTab('tab-bom')">🛒 Master BOM</div>
+    </div>
+
+    <div class="main-content">
+        
+        <!-- OVERVIEW TAB -->
+        <div id="tab-overview" class="tab-content active">
+            <h1>Project Spectre Dashboard</h1>
+            <p style="font-size: 1.2rem; line-height: 1.6;">
+                Welcome to the Master Hub for the 2017 VW Scirocco Stealth Dashcam system.
+                This app unifies the <strong>philosophy, wiring, 3D printing, and software</strong> into a single, bulletproof, dad-proof guide.
+            </p>
+            
+            <div class="gallery-grid" style="margin-top: 40px;">
+                <div class="step-card">
+                    <h3>🛡 Ghost Protocol</h3>
+                    <p>Total visual suppression. Cameras hide behind factory trim and mirrors.</p>
+                </div>
+                <div class="step-card">
+                    <h3>⚡️ Supremacy Hardware</h3>
+                    <p>Raspberry Pi CM5, Sony IMX678 4K, NVMe SSD, and 10Gbps USB 3.2 Gen 2.</p>
+                </div>
+                <div class="step-card">
+                    <h3>☁️ Telemetry Sync</h3>
+                    <p>Tailscale VPN over Quectel 4G to Hetzner VPS servers instantly.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MASTER SCHEMATIC TAB -->
+        <div id="tab-schema" class="tab-content">
+            <h1>Master Architectural Schematic</h1>
+            <p>The complete logical and physical node-map of the Spectre framework.</p>
+            
+            <div class="step-card" style="text-align: center; overflow: hidden;">
+                <h3 style="margin-bottom: 20px;">Logic Node Map</h3>
+                <div class="mermaid" style="background:var(--bg-dark); padding: 20px; border-radius: 8px;">
+                    flowchart TD
+                        classDef power fill:#f85149,stroke:#e6edf3,stroke-width:2px,color:#fff
+                        classDef brain fill:#1f6feb,stroke:#e6edf3,stroke-width:2px,color:#fff
+                        classDef cam fill:#238636,stroke:#e6edf3,stroke-width:2px,color:#fff
+                        classDef comms fill:#9e6a03,stroke:#e6edf3,stroke-width:2px,color:#fff
+
+                        FUSE["Scirocco Fusebox 12V+ACC"]
+                        ESP["ESP32-C3 Power Controller"]
+                        UPS["UPS HAT LiFePO4"]
+                        PI["Raspberry Pi CM5 4GB"]
+                        NVME["NVMe 980 PRO"]
+                        HUB["USB 3.2 Gen2 Hub"]
+                        LTE["Quectel EC25-E 4G"]
+                        CAMF["Front IMX678 4K"]
+                        CAML["Side L IMX307"]
+                        CAMR["Side R IMX307"]
+                        CAMREAR["Rear IMX307 Phase 2"]
+                        MIB2["MIB2 MIB-Tools Unlocked"]
+                        NET(["Hetzner VPS Tailscale"])
+
+                        FUSE -->|12V Constant| UPS
+                        FUSE -->|ACC Sense| ESP
+                        ESP -->|UART Shutdown| PI
+                        UPS -->|5V Main Power| PI
+                        PI -->|PCIe x1| NVME
+                        PI -->|USB 3.2 Host| HUB
+                        PI -->|USB 2.0| LTE
+                        CAMF -->|MIPI CSI Ribbon| PI
+                        CAML -->|Shielded USB-C| HUB
+                        CAMR -->|Shielded USB-C| HUB
+                        CAMREAR -.->|Future USB-C| HUB
+                        CAMREAR -.->|CVBS Reverse| MIB2
+                        LTE -->|Coax RF| NET
+
+                        class FUSE,UPS,ESP power
+                        class PI,NVME,HUB brain
+                        class CAMF,CAML,CAMR,CAMREAR cam
+                        class LTE,MIB2,NET comms
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>Physical Routing — Interactive Schematic</h3>
+                <p style="color: var(--text-muted); margin-bottom: 16px;">
+                    RHD 2017 VW Scirocco Mk3 R-Line TDI · 17 components · 18 wires · Layer toggles · Phase 1 &amp; 2 · Click-to-zoom · Component details panel.<br>
+                    <span style="font-size:0.8rem;">Generated by <code>tools/generate_interactive.py</code> — re-run anytime to update.</span>
+                </p>
+                <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden; height:680px;">
+                    <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;title&gt;Project Spectre — Interactive Schematic&lt;/title&gt;
+&lt;style&gt;
+@import url(&#x27;https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;display=swap&#x27;);
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;font-family:&#x27;Inter&#x27;,sans-serif;color:#e6edf3;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#161b22;border-bottom:1px solid #30363d;flex-wrap:wrap;flex-shrink:0}
+.logo{font-size:1.1rem;font-weight:800;letter-spacing:2px;background:linear-gradient(135deg,#fff,#58a6ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-right:10px}
+.sep{width:1px;height:24px;background:#30363d;margin:0 4px}
+.btn{padding:6px 12px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#8b949e;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s}
+.btn:hover{background:#30363d;color:#e6edf3}
+.btn.active{background:#1f6feb22;border-color:#58a6ff;color:#58a6ff}
+.btn.phase-active{background:#23863622;border-color:#3fb950;color:#3fb950}
+#main{display:flex;flex:1;overflow:hidden}
+#svg-wrap{flex:1;overflow:hidden;position:relative}
+#panel{width:0;min-width:0;background:#161b22;border-left:1px solid #30363d;transition:width .28s ease,min-width .28s ease;overflow:hidden;flex-shrink:0}
+#panel.open{width:300px;min-width:300px}
+#panel-inner{width:300px;padding:20px;height:100%;overflow-y:auto}
+#panel h2{font-size:1.1rem;font-weight:800;margin-bottom:6px;color:#e6edf3}
+#panel .tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:#1f6feb33;color:#58a6ff;margin-bottom:14px;display:inline-block}
+#panel .field{margin-bottom:14px}
+#panel .field label{font-size:10px;color:#8b949e;font-weight:600;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px}
+#panel .field p{font-size:12px;color:#e6edf3;line-height:1.6}
+#panel .field a{color:#58a6ff;text-decoration:none;font-size:12px}
+#panel .close-btn{position:absolute;top:14px;right:14px;background:none;border:1px solid #30363d;color:#8b949e;cursor:pointer;border-radius:4px;padding:2px 8px;font-size:12px}
+#panel .close-btn:hover{color:#e6edf3;border-color:#58a6ff}
+.zoom-info{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#161b22dd;border:1px solid #30363d;border-radius:6px;padding:6px 12px;font-size:11px;color:#8b949e;pointer-events:none;backdrop-filter:blur(4px)}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;toolbar&quot;&gt;
+  &lt;span class=&quot;logo&quot;&gt;SPECTRE&lt;/span&gt;
+  &lt;div class=&quot;sep&quot;&gt;&lt;/div&gt;
+  &lt;span style=&quot;font-size:11px;color:#8b949e;margin-right:4px&quot;&gt;LAYER:&lt;/span&gt;
+  &lt;button class=&quot;btn active&quot; onclick=&quot;setLayer(&#x27;all&#x27;,this)&quot;&gt;ALL&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;setLayer(&#x27;power&#x27;,this)&quot;&gt;⚡ POWER&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;setLayer(&#x27;data&#x27;,this)&quot;&gt;📷 DATA&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;setLayer(&#x27;comms&#x27;,this)&quot;&gt;📡 COMMS&lt;/button&gt;
+  &lt;div class=&quot;sep&quot;&gt;&lt;/div&gt;
+  &lt;span style=&quot;font-size:11px;color:#8b949e;margin-right:4px&quot;&gt;PHASE:&lt;/span&gt;
+  &lt;button class=&quot;btn phase-active&quot; id=&quot;p1btn&quot; onclick=&quot;setPhase(1)&quot;&gt;Ph1 — Front + Backend&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; id=&quot;p2btn&quot; onclick=&quot;setPhase(2)&quot;&gt;Ph2 — + Side Cams&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; id=&quot;p3btn&quot; onclick=&quot;setPhase(3)&quot;&gt;Ph3 — + Rear Cam&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; id=&quot;p4btn&quot; onclick=&quot;setPhase(4)&quot;&gt;Ph4 — + MIB2 Reverse&lt;/button&gt;
+  &lt;div class=&quot;sep&quot;&gt;&lt;/div&gt;
+  &lt;span style=&quot;font-size:11px;color:#8b949e;margin-right:4px&quot;&gt;ZOOM:&lt;/span&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;zoomTo(&#x27;full&#x27;)&quot;&gt;Full&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;zoomTo(&#x27;dashboard&#x27;)&quot;&gt;🧠 Brain&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;zoomTo(&#x27;front&#x27;)&quot;&gt;📸 Front&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;zoomTo(&#x27;bpillar&#x27;)&quot;&gt;🚗 B-Pillars&lt;/button&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;zoomTo(&#x27;rear&#x27;)&quot;&gt;🔙 Rear&lt;/button&gt;
+  &lt;div class=&quot;sep&quot;&gt;&lt;/div&gt;
+  &lt;button class=&quot;btn&quot; onclick=&quot;toggleZoneHints()&quot; id=&quot;zone-hint-btn&quot;&gt;🗺 Show Zones&lt;/button&gt;
+&lt;/div&gt;
+&lt;div id=&quot;main&quot;&gt;
+  &lt;div id=&quot;svg-wrap&quot;&gt;
+    &lt;svg id=&quot;mainsvg&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 900 1400&quot; style=&quot;width:100%;height:100%;background:#0d1117;cursor:grab&quot;&gt;
+&lt;defs&gt;&lt;filter id=&quot;glow&quot;&gt;&lt;feGaussianBlur stdDeviation=&quot;3&quot; result=&quot;b&quot;/&gt;&lt;feMerge&gt;&lt;feMergeNode in=&quot;b&quot;/&gt;&lt;feMergeNode in=&quot;SourceGraphic&quot;/&gt;&lt;/feMerge&gt;&lt;/filter&gt;&lt;/defs&gt;
+&lt;g id=&quot;g-car&quot;&gt;
+&lt;path d=&quot;M 450 80 Q 250 70 215 130 Q 190 230 192 295 Q 188 500 185 700 Q 192 900 218 1060 Q 210 1210 212 1300 Q 450 1330 688 1300 Q 690 1210 682 1060 Q 708 900 715 700 Q 712 500 708 295 Q 710 230 685 130 Q 650 70 450 80 Z&quot; fill=&quot;#1a1f28&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;3&quot;/&gt;
+&lt;path d=&quot;M 360 310 Q 450 280 540 310 L 565 400 Q 450 420 335 400 Z&quot; fill=&quot;#0f1c2e&quot; stroke=&quot;#0c1218&quot; stroke-width=&quot;8&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;polygon points=&quot;335,400 360,310 288,295 275,400&quot; fill=&quot;#0c1218&quot;/&gt;
+&lt;polygon points=&quot;565,400 540,310 612,295 625,400&quot; fill=&quot;#0c1218&quot;/&gt;
+&lt;rect x=&quot;210&quot; y=&quot;320&quot; width=&quot;480&quot; height=&quot;40&quot; rx=&quot;4&quot; fill=&quot;#1d2330&quot;/&gt;
+&lt;polygon points=&quot;275,400 288,295 192,295 188,430&quot; fill=&quot;#0f1c2e&quot; opacity=&quot;0.4&quot;/&gt;
+&lt;polygon points=&quot;625,400 612,295 708,295 712,430&quot; fill=&quot;#0f1c2e&quot; opacity=&quot;0.4&quot;/&gt;
+&lt;rect x=&quot;182&quot; y=&quot;680&quot; width=&quot;20&quot; height=&quot;90&quot; rx=&quot;3&quot; fill=&quot;#0c1218&quot;/&gt;
+&lt;rect x=&quot;698&quot; y=&quot;680&quot; width=&quot;20&quot; height=&quot;90&quot; rx=&quot;3&quot; fill=&quot;#0c1218&quot;/&gt;
+&lt;path d=&quot;M 275 1000 Q 450 975 625 1000 L 635 1115 Q 450 1135 265 1115 Z&quot; fill=&quot;#0f1c2e&quot; stroke=&quot;#0c1218&quot; stroke-width=&quot;6&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;polygon points=&quot;265,1115 275,1000 218,1010 210,1115&quot; fill=&quot;#0c1218&quot;/&gt;
+&lt;polygon points=&quot;635,1115 625,1000 682,1010 690,1115&quot; fill=&quot;#0c1218&quot;/&gt;
+&lt;circle cx=&quot;670&quot; cy=&quot;450&quot; r=&quot;38&quot; fill=&quot;none&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;5&quot;/&gt;
+&lt;circle cx=&quot;670&quot; cy=&quot;450&quot; r=&quot;12&quot; fill=&quot;#1d2330&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;3&quot;/&gt;
+&lt;line x1=&quot;670&quot; y1=&quot;412&quot; x2=&quot;670&quot; y2=&quot;438&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;4&quot;/&gt;
+&lt;line x1=&quot;670&quot; y1=&quot;462&quot; x2=&quot;670&quot; y2=&quot;488&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;4&quot;/&gt;
+&lt;line x1=&quot;632&quot; y1=&quot;450&quot; x2=&quot;658&quot; y2=&quot;450&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;4&quot;/&gt;
+&lt;line x1=&quot;682&quot; y1=&quot;450&quot; x2=&quot;708&quot; y2=&quot;450&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;4&quot;/&gt;
+&lt;rect x=&quot;560&quot; y=&quot;490&quot; width=&quot;155&quot; height=&quot;210&quot; rx=&quot;14&quot; fill=&quot;#1e2530&quot;/&gt;
+&lt;rect x=&quot;560&quot; y=&quot;480&quot; width=&quot;155&quot; height=&quot;45&quot; rx=&quot;10&quot; fill=&quot;#161c26&quot;/&gt;
+&lt;rect x=&quot;185&quot; y=&quot;490&quot; width=&quot;155&quot; height=&quot;210&quot; rx=&quot;14&quot; fill=&quot;#1e2530&quot;/&gt;
+&lt;rect x=&quot;185&quot; y=&quot;480&quot; width=&quot;155&quot; height=&quot;45&quot; rx=&quot;10&quot; fill=&quot;#161c26&quot;/&gt;
+&lt;rect x=&quot;220&quot; y=&quot;750&quot; width=&quot;460&quot; height=&quot;140&quot; rx=&quot;14&quot; fill=&quot;#1e2530&quot;/&gt;
+&lt;rect x=&quot;220&quot; y=&quot;742&quot; width=&quot;460&quot; height=&quot;38&quot; rx=&quot;10&quot; fill=&quot;#161c26&quot;/&gt;
+&lt;rect x=&quot;412&quot; y=&quot;412&quot; width=&quot;76&quot; height=&quot;310&quot; rx=&quot;12&quot; fill=&quot;#141a24&quot;/&gt;
+&lt;rect x=&quot;155&quot; y=&quot;328&quot; width=&quot;175&quot; height=&quot;58&quot; rx=&quot;5&quot; fill=&quot;#141a24&quot; stroke=&quot;#2a5a2a&quot; stroke-width=&quot;1.5&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;242&quot; y=&quot;359&quot; font-size=&quot;8&quot; fill=&quot;#3fb950&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; opacity=&quot;0.8&quot;&gt;GLOVEBOX / BRAIN&lt;/text&gt;
+&lt;circle cx=&quot;230&quot; cy=&quot;175&quot; r=&quot;35&quot; fill=&quot;#0c1218&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;2&quot;/&gt;
+&lt;circle cx=&quot;230&quot; cy=&quot;175&quot; r=&quot;20&quot; fill=&quot;#0d1117&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;1.5&quot;/&gt;
+&lt;circle cx=&quot;670&quot; cy=&quot;175&quot; r=&quot;35&quot; fill=&quot;#0c1218&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;2&quot;/&gt;
+&lt;circle cx=&quot;670&quot; cy=&quot;175&quot; r=&quot;20&quot; fill=&quot;#0d1117&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;1.5&quot;/&gt;
+&lt;circle cx=&quot;220&quot; cy=&quot;1155&quot; r=&quot;35&quot; fill=&quot;#0c1218&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;2&quot;/&gt;
+&lt;circle cx=&quot;220&quot; cy=&quot;1155&quot; r=&quot;20&quot; fill=&quot;#0d1117&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;1.5&quot;/&gt;
+&lt;circle cx=&quot;680&quot; cy=&quot;1155&quot; r=&quot;35&quot; fill=&quot;#0c1218&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;2&quot;/&gt;
+&lt;circle cx=&quot;680&quot; cy=&quot;1155&quot; r=&quot;20&quot; fill=&quot;#0d1117&quot; stroke=&quot;#3d4658&quot; stroke-width=&quot;1.5&quot;/&gt;
+&lt;rect x=&quot;245&quot; y=&quot;76&quot; width=&quot;410&quot; height=&quot;18&quot; rx=&quot;6&quot; fill=&quot;#0c1218&quot; opacity=&quot;0.8&quot;/&gt;
+&lt;rect x=&quot;235&quot; y=&quot;1296&quot; width=&quot;430&quot; height=&quot;20&quot; rx=&quot;6&quot; fill=&quot;#0c1218&quot; opacity=&quot;0.8&quot;/&gt;
+
+    &lt;rect id=&quot;zone-front&quot;    x=&quot;80&quot; y=&quot;60&quot;  width=&quot;740&quot; height=&quot;380&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;1.5&quot; stroke-dasharray=&quot;6 4&quot; rx=&quot;8&quot; opacity=&quot;0&quot; class=&quot;zone-rect&quot; onclick=&quot;zoomTo(&#x27;front&#x27;)&quot; cursor=&quot;pointer&quot;/&gt;
+    &lt;rect id=&quot;zone-dashboard&quot; x=&quot;80&quot; y=&quot;200&quot; width=&quot;500&quot; height=&quot;560&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;1.5&quot; stroke-dasharray=&quot;6 4&quot; rx=&quot;8&quot; opacity=&quot;0&quot; class=&quot;zone-rect&quot; onclick=&quot;zoomTo(&#x27;dashboard&#x27;)&quot; cursor=&quot;pointer&quot;/&gt;
+    &lt;rect id=&quot;zone-bpillar&quot;  x=&quot;80&quot; y=&quot;580&quot; width=&quot;740&quot; height=&quot;300&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;1.5&quot; stroke-dasharray=&quot;6 4&quot; rx=&quot;8&quot; opacity=&quot;0&quot; class=&quot;zone-rect&quot; onclick=&quot;zoomTo(&#x27;bpillar&#x27;)&quot; cursor=&quot;pointer&quot;/&gt;
+    &lt;rect id=&quot;zone-rear&quot;     x=&quot;100&quot; y=&quot;900&quot; width=&quot;700&quot; height=&quot;460&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;1.5&quot; stroke-dasharray=&quot;6 4&quot; rx=&quot;8&quot; opacity=&quot;0&quot; class=&quot;zone-rect&quot; onclick=&quot;zoomTo(&#x27;rear&#x27;)&quot; cursor=&quot;pointer&quot;/&gt;
+    &lt;text x=&quot;450&quot; y=&quot;52&quot; font-size=&quot;11&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;FRONT (BONNET)&lt;/text&gt;
+&lt;text x=&quot;450&quot; y=&quot;1380&quot; font-size=&quot;11&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;REAR (BOOT / HATCH)&lt;/text&gt;
+&lt;text x=&quot;28&quot; y=&quot;700&quot; font-size=&quot;10&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; transform=&quot;rotate(-90,28,700)&quot;&gt;PASSENGER (LEFT)&lt;/text&gt;
+&lt;text x=&quot;872&quot; y=&quot;700&quot; font-size=&quot;10&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; transform=&quot;rotate(90,872,700)&quot;&gt;DRIVER (RIGHT)&lt;/text&gt;
+
+&lt;/g&gt;
+&lt;g id=&quot;g-wires&quot;&gt;
+&lt;g id=&quot;wire-pw1&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;700,352 330,352 330,380&quot; fill=&quot;none&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;700,352 330,352 330,380&quot; fill=&quot;none&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;487.6&quot; y=&quot;358&quot; width=&quot;54.800000000000004&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;515&quot; y=&quot;367&quot; font-size=&quot;8&quot; fill=&quot;#f85149&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;12V Const&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-pw2&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;700,368 340,368 340,380&quot; fill=&quot;none&quot; stroke=&quot;#d29922&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;700,368 340,368 340,380&quot; fill=&quot;none&quot; stroke=&quot;#d29922&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-dasharray=&quot;5 3&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;492.6&quot; y=&quot;366&quot; width=&quot;54.800000000000004&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#d29922&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;520&quot; y=&quot;375&quot; font-size=&quot;8&quot; fill=&quot;#d29922&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;ACC Sense&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-gn1&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;700,460 680,460&quot; fill=&quot;none&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;700,460 680,460&quot; fill=&quot;none&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;657.4&quot; y=&quot;452&quot; width=&quot;65.2&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;690&quot; y=&quot;461&quot; font-size=&quot;8&quot; fill=&quot;#6e7681&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;Chassis GND&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-gn2&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;680,460 220,460&quot; fill=&quot;none&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;680,460 220,460&quot; fill=&quot;none&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;420.0&quot; y=&quot;452&quot; width=&quot;60.0&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;450&quot; y=&quot;461&quot; font-size=&quot;8&quot; fill=&quot;#6e7681&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;GND to UPS&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-pw3&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;320,420 220,450&quot; fill=&quot;none&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;320,420 220,450&quot; fill=&quot;none&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;250.4&quot; y=&quot;427&quot; width=&quot;39.2&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;270&quot; y=&quot;436&quot; font-size=&quot;8&quot; fill=&quot;#f85149&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;5V Reg&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-pw4&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;220,512 220,562&quot; fill=&quot;none&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;220,512 220,562&quot; fill=&quot;none&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;197.8&quot; y=&quot;529&quot; width=&quot;44.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;220&quot; y=&quot;538&quot; font-size=&quot;8&quot; fill=&quot;#f85149&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;5V Main&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-ua1&quot; class=&quot;wire layer-power phase-1&quot;&gt;
+&lt;polyline points=&quot;310,410 280,410 280,562&quot; fill=&quot;none&quot; stroke=&quot;#e6893a&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;310,410 280,410 280,562&quot; fill=&quot;none&quot; stroke=&quot;#e6893a&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;257.2&quot; y=&quot;478&quot; width=&quot;75.60000000000001&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#e6893a&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;295&quot; y=&quot;487&quot; font-size=&quot;8&quot; fill=&quot;#e6893a&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;UART Shutdown&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-dt1&quot; class=&quot;wire layer-data phase-1&quot;&gt;
+&lt;polyline points=&quot;192,590 135,590&quot; fill=&quot;none&quot; stroke=&quot;#bc8cff&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;192,590 135,590&quot; fill=&quot;none&quot; stroke=&quot;#bc8cff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;140.8&quot; y=&quot;582&quot; width=&quot;44.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#bc8cff&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;163&quot; y=&quot;591&quot; font-size=&quot;8&quot; fill=&quot;#bc8cff&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;PCIe x1&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-dt2&quot; class=&quot;wire layer-data phase-1&quot;&gt;
+&lt;polyline points=&quot;248,590 310,590&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;248,590 310,590&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;256.8&quot; y=&quot;582&quot; width=&quot;44.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;279&quot; y=&quot;591&quot; font-size=&quot;8&quot; fill=&quot;#58a6ff&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;USB 3.2&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-cm1&quot; class=&quot;wire layer-comms phase-1&quot;&gt;
+&lt;polyline points=&quot;330,610 330,645 240,645 240,660&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;330,610 330,645 240,645 240,660&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;262.8&quot; y=&quot;627&quot; width=&quot;44.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;285&quot; y=&quot;636&quot; font-size=&quot;8&quot; fill=&quot;#58a6ff&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;USB 2.0&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-fc1&quot; class=&quot;wire layer-data phase-1&quot;&gt;
+&lt;polyline points=&quot;450,295 200,295 200,562&quot; fill=&quot;none&quot; stroke=&quot;#e6edf3&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;450,295 200,295 200,562&quot; fill=&quot;none&quot; stroke=&quot;#e6edf3&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;282.0&quot; y=&quot;420&quot; width=&quot;86.0&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#e6edf3&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;325&quot; y=&quot;429&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;MIPI FPC Ribbon&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-sc1&quot; class=&quot;wire layer-data phase-2&quot;&gt;
+&lt;polyline points=&quot;165,700 165,800 240,800 240,610 310,610&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;165,700 165,800 240,800 240,610 310,610&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-dasharray=&quot;5 3&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;199.2&quot; y=&quot;647&quot; width=&quot;75.60000000000001&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;237&quot; y=&quot;656&quot; font-size=&quot;8&quot; fill=&quot;#58a6ff&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;USB-C L (Ph2)&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-sc2&quot; class=&quot;wire layer-data phase-2&quot;&gt;
+&lt;polyline points=&quot;735,700 735,940 450,940 165,940 165,800 240,800 240,610 310,610&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;735,700 735,940 450,940 165,940 165,800 240,800 240,610 310,610&quot; fill=&quot;none&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-dasharray=&quot;5 3&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;484.2&quot; y=&quot;647&quot; width=&quot;75.60000000000001&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;522&quot; y=&quot;656&quot; font-size=&quot;8&quot; fill=&quot;#58a6ff&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;USB-C R (Ph2)&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-rc1&quot; class=&quot;wire layer-data phase-3&quot;&gt;
+&lt;polyline points=&quot;450,1075 165,1075 165,940 165,800 240,800 240,610 310,610&quot; fill=&quot;none&quot; stroke=&quot;#39c5cf&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;450,1075 165,1075 165,940 165,800 240,800 240,610 310,610&quot; fill=&quot;none&quot; stroke=&quot;#39c5cf&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-dasharray=&quot;6 3&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;334.4&quot; y=&quot;834&quot; width=&quot;91.2&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#39c5cf&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;380&quot; y=&quot;843&quot; font-size=&quot;8&quot; fill=&quot;#39c5cf&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;Rear USB-C (Ph3)&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-cv1&quot; class=&quot;wire layer-comms phase-4&quot;&gt;
+&lt;polyline points=&quot;530,1090 530,900 530,440 394,440&quot; fill=&quot;none&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;530,1090 530,900 530,440 394,440&quot; fill=&quot;none&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-dasharray=&quot;4 3&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;426.8&quot; y=&quot;757&quot; width=&quot;70.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;462&quot; y=&quot;766&quot; font-size=&quot;8&quot; fill=&quot;#f4a340&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;CVBS Reverse&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-cv2&quot; class=&quot;wire layer-comms phase-4&quot;&gt;
+&lt;polyline points=&quot;366,440 450,440 450,358&quot; fill=&quot;none&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;366,440 450,440 450,358&quot; fill=&quot;none&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;372.8&quot; y=&quot;391&quot; width=&quot;70.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;408&quot; y=&quot;400&quot; font-size=&quot;8&quot; fill=&quot;#f4a340&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;CVBS to MIB2&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-rf1&quot; class=&quot;wire layer-comms phase-1&quot;&gt;
+&lt;polyline points=&quot;450,130 450,350 360,350 240,350 240,660&quot; fill=&quot;none&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;450,130 450,350 360,350 240,350 240,660&quot; fill=&quot;none&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;  opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;322.8&quot; y=&quot;387&quot; width=&quot;44.4&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;345&quot; y=&quot;396&quot; font-size=&quot;8&quot; fill=&quot;#3fb950&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;Coax RF&lt;/text&gt;
+&lt;/g&gt;
+&lt;g id=&quot;wire-rf2&quot; class=&quot;wire layer-comms phase-1&quot;&gt;
+&lt;polyline points=&quot;240,680 580,680 855,680 855,610&quot; fill=&quot;none&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;7&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;polyline points=&quot;240,680 580,680 855,680 855,610&quot; fill=&quot;none&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; stroke-dasharray=&quot;8 4&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;rect x=&quot;509.2&quot; y=&quot;637&quot; width=&quot;75.60000000000001&quot; height=&quot;15&quot; rx=&quot;3&quot; fill=&quot;#0d1117&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;0.8&quot; opacity=&quot;0.9&quot;/&gt;
+&lt;text x=&quot;547&quot; y=&quot;646&quot; font-size=&quot;8&quot; fill=&quot;#3fb950&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;4G → Internet&lt;/text&gt;
+&lt;/g&gt;
+
+&lt;/g&gt;
+&lt;g id=&quot;g-comps&quot;&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;700&quot; cy=&quot;355&quot; r=&quot;33&quot; fill=&quot;#f85149&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1 comp-node&quot; cx=&quot;700&quot; cy=&quot;355&quot; r=&quot;24&quot; fill=&quot;#f85149&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;fusebox&quot; data-labels=&quot;FUSEBOX&quot; onclick=&quot;showPanel(&#x27;fusebox&#x27;,&#x27;FUSEBOX&#x27;,&quot;{&amp;quot;spec&amp;quot;: &amp;quot;Add-a-circuit dual fuse tap (15A constant + 7.5A ACC)&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon UK \\u2014 search &#x27;dual add-a-circuit&#x27;&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;ESP32 ACC sense, UPS HAT VIN+&amp;quot;}&quot;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;700&quot; cy=&quot;355&quot; r=&quot;8&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;700&quot; y=&quot;393&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;FUSEBOX&lt;/text&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;700&quot; y=&quot;406&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;12V+ACC&lt;/text&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;680&quot; cy=&quot;460&quot; r=&quot;23&quot; fill=&quot;#f85149&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1 comp-node&quot; cx=&quot;680&quot; cy=&quot;460&quot; r=&quot;14&quot; fill=&quot;#f85149&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;gnd_bolt&quot; data-labels=&quot;GND&quot; onclick=&quot;showPanel(&#x27;gnd_bolt&#x27;,&#x27;GND&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;M8 bare-metal chassis bolt under right-side dash&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Already in car&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;UPS HAT GND\\u2013&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;680&quot; cy=&quot;460&quot; r=&quot;4&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;680&quot; y=&quot;488&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;GND&lt;/text&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;680&quot; y=&quot;501&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Chassis&lt;/text&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;330&quot; cy=&quot;400&quot; r=&quot;29&quot; fill=&quot;#6e3a9e&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1 comp-node&quot; cx=&quot;330&quot; cy=&quot;400&quot; r=&quot;20&quot; fill=&quot;#6e3a9e&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;esp32&quot; data-labels=&quot;ESP32-C3&quot; onclick=&quot;showPanel(&#x27;esp32&#x27;,&#x27;ESP32-C3&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;ESP32-C3 SuperMini \\u2014 monitors ACC, fires UART shutdown&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;AliExpress ~\\u00a34&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Fusebox ACC, Pi UART, UPS relay&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;330&quot; cy=&quot;400&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;330&quot; y=&quot;434&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;ESP32-C3&lt;/text&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;330&quot; y=&quot;447&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Logic Ctrl&lt;/text&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;220&quot; cy=&quot;490&quot; r=&quot;31&quot; fill=&quot;#f85149&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1 comp-node&quot; cx=&quot;220&quot; cy=&quot;490&quot; r=&quot;22&quot; fill=&quot;#f85149&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;ups&quot; data-labels=&quot;UPS HAT&quot; onclick=&quot;showPanel(&#x27;ups&#x27;,&#x27;UPS HAT&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Waveshare UPS HAT B (12V in \\u2192 5V out, battery backup)&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon/Waveshare ~\\u00a338&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Fusebox 12V, GND bolt, Pi CM5 5V&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-power phase-1&quot; cx=&quot;220&quot; cy=&quot;490&quot; r=&quot;7&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;220&quot; y=&quot;526&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;UPS HAT&lt;/text&gt;
+&lt;text class=&quot;comp layer-power phase-1&quot; x=&quot;220&quot; y=&quot;539&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;LiFePO4 6Ah&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;220&quot; cy=&quot;590&quot; r=&quot;37&quot; fill=&quot;#1f6feb&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1 comp-node&quot; cx=&quot;220&quot; cy=&quot;590&quot; r=&quot;28&quot; fill=&quot;#1f6feb&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;pi&quot; data-labels=&quot;RPi CM5&quot; onclick=&quot;showPanel(&#x27;pi&#x27;,&#x27;RPi CM5&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Raspberry Pi CM5 Lite 4GB + IO Board + heatsink&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;The Pi Hut UK ~\\u00a360&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;NVMe, USB Hub, 4G modem, front cam CSI&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;220&quot; cy=&quot;590&quot; r=&quot;9&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;220&quot; y=&quot;632&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;RPi CM5&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;220&quot; y=&quot;645&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;4GB Brain&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;120&quot; cy=&quot;590&quot; r=&quot;24&quot; fill=&quot;#1f6feb&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1 comp-node&quot; cx=&quot;120&quot; cy=&quot;590&quot; r=&quot;15&quot; fill=&quot;#1f6feb&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;nvme&quot; data-labels=&quot;NVMe&quot; onclick=&quot;showPanel(&#x27;nvme&#x27;,&#x27;NVMe&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Samsung 980 PRO 512GB M.2 NVMe (~3500 MB/s)&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon UK ~\\u00a350&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Raspberry Pi CM5 PCIe&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;120&quot; cy=&quot;590&quot; r=&quot;5&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;120&quot; y=&quot;619&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;NVMe&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;120&quot; y=&quot;632&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;980 PRO 512G&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;330&quot; cy=&quot;590&quot; r=&quot;29&quot; fill=&quot;#1f6feb&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1 comp-node&quot; cx=&quot;330&quot; cy=&quot;590&quot; r=&quot;20&quot; fill=&quot;#1f6feb&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;hub&quot; data-labels=&quot;USB Hub&quot; onclick=&quot;showPanel(&#x27;hub&#x27;,&#x27;USB Hub&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;UGREEN 4-port USB 3.2 Gen2 Type-C aluminum hub&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon UK ~\\u00a322&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Pi CM5 host, 4G modem \\u2014 side cams Phase 2&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;330&quot; cy=&quot;590&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;330&quot; y=&quot;624&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;USB Hub&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;330&quot; y=&quot;637&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;3.2 Gen2&lt;/text&gt;
+&lt;circle class=&quot;comp layer-comms phase-1&quot; cx=&quot;220&quot; cy=&quot;680&quot; r=&quot;29&quot; fill=&quot;#9e6a03&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-1 comp-node&quot; cx=&quot;220&quot; cy=&quot;680&quot; r=&quot;20&quot; fill=&quot;#9e6a03&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;lte&quot; data-labels=&quot;EC25-E&quot; onclick=&quot;showPanel(&#x27;lte&#x27;,&#x27;EC25-E&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Quectel EC25-E M.2 LTE Cat4 (150Mbps DL)&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;AliExpress ~\\u00a330&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Pi CM5 USB, shark-fin antenna&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-1&quot; cx=&quot;220&quot; cy=&quot;680&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-comms phase-1&quot; x=&quot;220&quot; y=&quot;714&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;EC25-E&lt;/text&gt;
+&lt;text class=&quot;comp layer-comms phase-1&quot; x=&quot;220&quot; y=&quot;727&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;4G Modem&lt;/text&gt;
+&lt;circle class=&quot;comp layer-comms phase-4&quot; cx=&quot;450&quot; cy=&quot;340&quot; r=&quot;27&quot; fill=&quot;#9e6a03&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-4 comp-node&quot; cx=&quot;450&quot; cy=&quot;340&quot; r=&quot;18&quot; fill=&quot;#9e6a03&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;mib2&quot; data-labels=&quot;MIB2&quot; onclick=&quot;showPanel(&#x27;mib2&#x27;,&#x27;MIB2&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Factory MIB2 (MIB Tools unlocked) \\u2014 CVBS camera input enabled via OBDeleven coding&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Already fitted \\u2014 needs VCDS/OBDeleven coding&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Pi HDMI\\u2192CVBS adapter + Number plate reverse cam CVBS&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-4&quot; cx=&quot;450&quot; cy=&quot;340&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-comms phase-4&quot; x=&quot;450&quot; y=&quot;372&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;MIB2&lt;/text&gt;
+&lt;text class=&quot;comp layer-comms phase-4&quot; x=&quot;450&quot; y=&quot;385&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Infotainment&lt;/text&gt;
+&lt;circle class=&quot;comp layer-comms phase-4&quot; cx=&quot;380&quot; cy=&quot;440&quot; r=&quot;23&quot; fill=&quot;#9e6a03&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-4 comp-node&quot; cx=&quot;380&quot; cy=&quot;440&quot; r=&quot;14&quot; fill=&quot;#9e6a03&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cvbs&quot; data-labels=&quot;CVBS&quot; onclick=&quot;showPanel(&#x27;cvbs&#x27;,&#x27;CVBS&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;HDMI\\u2192CVBS composite adapter + 4-way CVBS splitter/switcher&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon UK ~\\u00a312&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Pi CM5 HDMI0, number plate cam, MIB2 input&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-4&quot; cx=&quot;380&quot; cy=&quot;440&quot; r=&quot;4&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-comms phase-4&quot; x=&quot;380&quot; y=&quot;468&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;CVBS&lt;/text&gt;
+&lt;text class=&quot;comp layer-comms phase-4&quot; x=&quot;380&quot; y=&quot;481&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Adapter&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;450&quot; cy=&quot;295&quot; r=&quot;33&quot; fill=&quot;#238636&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1 comp-node&quot; cx=&quot;450&quot; cy=&quot;295&quot; r=&quot;24&quot; fill=&quot;#238636&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cam_front&quot; data-labels=&quot;Front Cam&quot; onclick=&quot;showPanel(&#x27;cam_front&#x27;,&#x27;Front Cam&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Sony IMX678 STARVIS2 4K MIPI CSI-2 + 140\\u00b0+ M12 lens \\u2014 Phase 1 priority&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;AliExpress ~\\u00a355 \\u2014 select 140\\u00b0+ FOV in dropdown&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Pi CM5 CSI port 0 via FPC ribbon (A-pillar \\u2192 headliner run)&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-1&quot; cx=&quot;450&quot; cy=&quot;295&quot; r=&quot;8&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;450&quot; y=&quot;333&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;Front Cam&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-1&quot; x=&quot;450&quot; y=&quot;346&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;IMX678 4K&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-2&quot; cx=&quot;165&quot; cy=&quot;700&quot; r=&quot;29&quot; fill=&quot;#238636&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-2 comp-node&quot; cx=&quot;165&quot; cy=&quot;700&quot; r=&quot;20&quot; fill=&quot;#238636&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cam_left&quot; data-labels=&quot;Side L&quot; onclick=&quot;showPanel(&#x27;cam_left&#x27;,&#x27;Side L&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Sony IMX307 STARVIS 1080p USB2 \\u2014 passenger B-pillar \\u2014 Phase 2&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;AliExpress ~\\u00a312 \\u2014 select 140\\u00b0+ FOV&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;USB Hub via shielded USB-C (left sill run)&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-2&quot; cx=&quot;165&quot; cy=&quot;700&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-2&quot; x=&quot;165&quot; y=&quot;734&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;Side L&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-2&quot; x=&quot;165&quot; y=&quot;747&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;IMX307&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-2&quot; cx=&quot;735&quot; cy=&quot;700&quot; r=&quot;29&quot; fill=&quot;#238636&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-2 comp-node&quot; cx=&quot;735&quot; cy=&quot;700&quot; r=&quot;20&quot; fill=&quot;#238636&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cam_right&quot; data-labels=&quot;Side R&quot; onclick=&quot;showPanel(&#x27;cam_right&#x27;,&#x27;Side R&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Sony IMX307 STARVIS 1080p USB2 \\u2014 driver B-pillar \\u2014 Phase 2&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;AliExpress ~\\u00a312 \\u2014 select 140\\u00b0+ FOV&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;USB Hub via shielded USB-C (long right-sill-to-left run)&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-2&quot; cx=&quot;735&quot; cy=&quot;700&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-2&quot; x=&quot;735&quot; y=&quot;734&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;Side R&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-2&quot; x=&quot;735&quot; y=&quot;747&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;IMX307&lt;/text&gt;
+&lt;circle class=&quot;comp layer-data phase-3&quot; cx=&quot;450&quot; cy=&quot;1075&quot; r=&quot;33&quot; fill=&quot;#238636&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-3 comp-node&quot; cx=&quot;450&quot; cy=&quot;1075&quot; r=&quot;24&quot; fill=&quot;#238636&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cam_rear&quot; data-labels=&quot;Rear Cam&quot; onclick=&quot;showPanel(&#x27;cam_rear&#x27;,&#x27;Rear Cam&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Sony IMX307 STARVIS 1080p USB2 \\u2014 upper hatch trim \\u2014 Phase 3&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;AliExpress ~\\u00a312&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;USB Hub via USB-C along headliner \\u2192 C-pillar \\u2192 sill&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-data phase-3&quot; cx=&quot;450&quot; cy=&quot;1075&quot; r=&quot;8&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-data phase-3&quot; x=&quot;450&quot; y=&quot;1113&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;Rear Cam&lt;/text&gt;
+&lt;text class=&quot;comp layer-data phase-3&quot; x=&quot;450&quot; y=&quot;1126&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;IMX307 Ph3&lt;/text&gt;
+&lt;circle class=&quot;comp layer-comms phase-4&quot; cx=&quot;530&quot; cy=&quot;1090&quot; r=&quot;26&quot; fill=&quot;#238636&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-4 comp-node&quot; cx=&quot;530&quot; cy=&quot;1090&quot; r=&quot;17&quot; fill=&quot;#238636&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cam_rplate&quot; data-labels=&quot;Plate Cam&quot; onclick=&quot;showPanel(&#x27;cam_rplate&#x27;,&#x27;Plate Cam&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Dedicated CVBS reversing cam at number plate \\u2014 170\\u00b0 fisheye, triggered by reverse signal \\u2014 Phase 4&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon UK ~\\u00a315&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;CVBS switcher \\u2192 MIB2 camera input + reverse light trigger wire&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-4&quot; cx=&quot;530&quot; cy=&quot;1090&quot; r=&quot;5&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-comms phase-4&quot; x=&quot;530&quot; y=&quot;1121&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;Plate Cam&lt;/text&gt;
+&lt;text class=&quot;comp layer-comms phase-4&quot; x=&quot;530&quot; y=&quot;1134&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Reverse Ph4&lt;/text&gt;
+&lt;circle class=&quot;comp layer-comms phase-1&quot; cx=&quot;450&quot; cy=&quot;115&quot; r=&quot;24&quot; fill=&quot;#9e6a03&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-1 comp-node&quot; cx=&quot;450&quot; cy=&quot;115&quot; r=&quot;15&quot; fill=&quot;#9e6a03&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;antenna&quot; data-labels=&quot;4G Ant.&quot; onclick=&quot;showPanel(&#x27;antenna&#x27;,&#x27;4G Ant.&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Roof-mount shark-fin 4G/GPS combo antenna \\u2014 SMA connector&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;Amazon UK ~\\u00a315&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Quectel EC25-E via coax&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-1&quot; cx=&quot;450&quot; cy=&quot;115&quot; r=&quot;5&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-comms phase-1&quot; x=&quot;450&quot; y=&quot;144&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;4G Ant.&lt;/text&gt;
+&lt;text class=&quot;comp layer-comms phase-1&quot; x=&quot;450&quot; y=&quot;157&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Shark-fin&lt;/text&gt;
+&lt;circle class=&quot;comp layer-comms phase-1&quot; cx=&quot;855&quot; cy=&quot;590&quot; r=&quot;29&quot; fill=&quot;#9e6a03&quot; opacity=&quot;0.12&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-1 comp-node&quot; cx=&quot;855&quot; cy=&quot;590&quot; r=&quot;20&quot; fill=&quot;#9e6a03&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1.5&quot; data-id=&quot;cloud&quot; data-labels=&quot;Hetzner VPS&quot; onclick=&quot;showPanel(&#x27;cloud&#x27;,&#x27;Hetzner VPS&#x27;,&#x27;{&amp;quot;spec&amp;quot;: &amp;quot;Hetzner CX21 (\\u20ac5/mo) \\u2014 Tailscale relay + Nextcloud storage&amp;quot;, &amp;quot;buy&amp;quot;: &amp;quot;hetzner.com&amp;quot;, &amp;quot;connects&amp;quot;: &amp;quot;Quectel 4G LTE over internet&amp;quot;}&#x27;)&quot; cursor=&quot;pointer&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;circle class=&quot;comp layer-comms phase-1&quot; cx=&quot;855&quot; cy=&quot;590&quot; r=&quot;6&quot; fill=&quot;#fff&quot; opacity=&quot;0.6&quot;/&gt;
+&lt;text class=&quot;comp layer-comms phase-1&quot; x=&quot;855&quot; y=&quot;624&quot; font-size=&quot;10&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;Hetzner VPS&lt;/text&gt;
+&lt;text class=&quot;comp layer-comms phase-1&quot; x=&quot;855&quot; y=&quot;637&quot; font-size=&quot;8&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;400&quot;&gt;Tailscale&lt;/text&gt;
+
+&lt;/g&gt;
+&lt;g id=&quot;g-legend&quot;&gt;
+&lt;rect x=&quot;15&quot; y=&quot;15&quot; width=&quot;160&quot; height=&quot;203&quot; rx=&quot;6&quot; fill=&quot;#0d1117&quot; stroke=&quot;#30363d&quot; stroke-width=&quot;1.2&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;text x=&quot;95&quot; y=&quot;31&quot; font-size=&quot;9&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;WIRE LEGEND&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;45&quot; x2=&quot;53&quot; y2=&quot;45&quot; stroke=&quot;#f85149&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;49&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;12V Constant&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;64&quot; x2=&quot;53&quot; y2=&quot;64&quot; stroke=&quot;#d29922&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;68&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;ACC / Ignition&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;83&quot; x2=&quot;53&quot; y2=&quot;83&quot; stroke=&quot;#6e7681&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;87&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Chassis GND&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;102&quot; x2=&quot;53&quot; y2=&quot;102&quot; stroke=&quot;#e6893a&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;106&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;UART Shutdown&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;121&quot; x2=&quot;53&quot; y2=&quot;121&quot; stroke=&quot;#58a6ff&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;125&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;USB 3.2 Data&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;140&quot; x2=&quot;53&quot; y2=&quot;140&quot; stroke=&quot;#e6edf3&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;144&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;MIPI FPC Ribbon&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;159&quot; x2=&quot;53&quot; y2=&quot;159&quot; stroke=&quot;#3fb950&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;163&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;4G RF / Comms&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;178&quot; x2=&quot;53&quot; y2=&quot;178&quot; stroke=&quot;#39c5cf&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;182&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Phase 2 Future&lt;/text&gt;
+&lt;line x1=&quot;25&quot; y1=&quot;197&quot; x2=&quot;53&quot; y2=&quot;197&quot; stroke=&quot;#f4a340&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
+&lt;text x=&quot;61&quot; y=&quot;201&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;CVBS MIB2 Feed&lt;/text&gt;
+&lt;rect x=&quot;725&quot; y=&quot;15&quot; width=&quot;160&quot; height=&quot;132&quot; rx=&quot;6&quot; fill=&quot;#0d1117&quot; stroke=&quot;#30363d&quot; stroke-width=&quot;1.2&quot; opacity=&quot;0.95&quot;/&gt;
+&lt;text x=&quot;805&quot; y=&quot;31&quot; font-size=&quot;9&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot; font-weight=&quot;700&quot;&gt;NODE TYPES&lt;/text&gt;
+&lt;circle cx=&quot;739&quot; cy=&quot;45&quot; r=&quot;7&quot; fill=&quot;#f85149&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1&quot;/&gt;
+&lt;text x=&quot;753&quot; y=&quot;49&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Power/Battery&lt;/text&gt;
+&lt;circle cx=&quot;739&quot; cy=&quot;65&quot; r=&quot;7&quot; fill=&quot;#1f6feb&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1&quot;/&gt;
+&lt;text x=&quot;753&quot; y=&quot;69&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Compute/Storage&lt;/text&gt;
+&lt;circle cx=&quot;739&quot; cy=&quot;85&quot; r=&quot;7&quot; fill=&quot;#238636&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1&quot;/&gt;
+&lt;text x=&quot;753&quot; y=&quot;89&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Camera Module&lt;/text&gt;
+&lt;circle cx=&quot;739&quot; cy=&quot;105&quot; r=&quot;7&quot; fill=&quot;#9e6a03&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1&quot;/&gt;
+&lt;text x=&quot;753&quot; y=&quot;109&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Communications&lt;/text&gt;
+&lt;circle cx=&quot;739&quot; cy=&quot;125&quot; r=&quot;7&quot; fill=&quot;#6e3a9e&quot; stroke=&quot;#fff&quot; stroke-width=&quot;1&quot;/&gt;
+&lt;text x=&quot;753&quot; y=&quot;129&quot; font-size=&quot;8&quot; fill=&quot;#e6edf3&quot; text-anchor=&quot;start&quot; font-family=&quot;monospace&quot;&gt;Logic/Control&lt;/text&gt;
+
+&lt;rect x=&quot;366.0&quot; y=&quot;26&quot; width=&quot;168.0&quot; height=&quot;18&quot; rx=&quot;4&quot; fill=&quot;#0d1117&quot; stroke=&quot;#30363d&quot; stroke-width=&quot;1&quot; opacity=&quot;0.8&quot;/&gt;
+&lt;text x=&quot;450&quot; y=&quot;39&quot; font-size=&quot;9&quot; fill=&quot;#8b949e&quot; text-anchor=&quot;middle&quot; font-family=&quot;monospace&quot;&gt;🔍 Click zones to zoom in&lt;/text&gt;
+
+&lt;/g&gt;
+&lt;/svg&gt;
+    &lt;div class=&quot;zoom-info&quot; id=&quot;zoom-info&quot;&gt;Scroll to zoom · Drag to pan · Click components for details · Click zones to jump&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div id=&quot;panel&quot;&gt;
+    &lt;div id=&quot;panel-inner&quot; style=&quot;position:relative&quot;&gt;
+      &lt;button class=&quot;close-btn&quot; onclick=&quot;closePanel()&quot;&gt;✕&lt;/button&gt;
+      &lt;h2 id=&quot;p-name&quot;&gt;—&lt;/h2&gt;
+      &lt;span class=&quot;tag&quot; id=&quot;p-tag&quot;&gt;COMPONENT&lt;/span&gt;
+      &lt;div class=&quot;field&quot;&gt;&lt;label&gt;Specification&lt;/label&gt;&lt;p id=&quot;p-spec&quot;&gt;—&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;&lt;label&gt;Where to Buy&lt;/label&gt;&lt;p id=&quot;p-buy&quot;&gt;—&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;&lt;label&gt;Connects To&lt;/label&gt;&lt;p id=&quot;p-conn&quot;&gt;—&lt;/p&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const ZONES = {&quot;full&quot;: &quot;0 0 900 1400&quot;, &quot;dashboard&quot;: &quot;80 200 500 560&quot;, &quot;front&quot;: &quot;80 60  740 380&quot;, &quot;bpillar&quot;: &quot;80 580 740 300&quot;, &quot;rear&quot;: &quot;100 900 700 460&quot;};
+const svg = document.getElementById(&#x27;mainsvg&#x27;);
+let currentVB = &quot;0 0 900 1400&quot;;
+let currentLayer = &#x27;all&#x27;;
+let currentPhase = 1;
+let zonesVisible = false;
+let isPanning = false, panStart = null, panVB = null;
+
+// ── ViewBox animation ──────────────────────────────────────────────────────
+function parseVB(s){return s.split(&#x27; &#x27;).map(Number)}
+function animateVB(target, ms=500){
+  const start = parseVB(svg.getAttribute(&#x27;viewBox&#x27;));
+  const end = parseVB(target);
+  const t0 = performance.now();
+  function step(t){
+    const p = Math.min((t-t0)/ms, 1);
+    const e = p&lt;.5 ? 2*p*p : -1+(4-2*p)*p; // ease in-out
+    const vb = start.map((s,i)=&gt;s+(end[i]-s)*e).join(&#x27; &#x27;);
+    svg.setAttribute(&#x27;viewBox&#x27;, vb);
+    if(p&lt;1) requestAnimationFrame(step);
+    else currentVB = target;
+  }
+  requestAnimationFrame(step);
+}
+
+function zoomTo(zone){
+  animateVB(ZONES[zone]);
+  document.getElementById(&#x27;zoom-info&#x27;).textContent = zone===&#x27;full&#x27; ? &#x27;Scroll to zoom · Drag to pan · Click components for details&#x27; : `Zoomed: ${zone} — Click &quot;Full&quot; to zoom out`;
+}
+
+// ── Scroll/pinch zoom ──────────────────────────────────────────────────────
+svg.addEventListener(&#x27;wheel&#x27;, e=&gt;{
+  e.preventDefault();
+  const vb = parseVB(svg.getAttribute(&#x27;viewBox&#x27;));
+  const factor = e.deltaY&gt;0 ? 1.12 : 0.89;
+  const rect = svg.getBoundingClientRect();
+  const px = (e.clientX-rect.left)/rect.width;
+  const py = (e.clientY-rect.top)/rect.height;
+  const mx = vb[0]+vb[2]*px, my = vb[1]+vb[3]*py;
+  const nw=vb[2]*factor, nh=vb[3]*factor;
+  svg.setAttribute(&#x27;viewBox&#x27;,`${mx-px*nw} ${my-py*nh} ${nw} ${nh}`);
+},{passive:false});
+
+// ── Drag pan ───────────────────────────────────────────────────────────────
+svg.addEventListener(&#x27;mousedown&#x27;, e=&gt;{
+  if(e.target.classList.contains(&#x27;comp-node&#x27;)||e.target.classList.contains(&#x27;zone-rect&#x27;)) return;
+  isPanning=true; panStart={x:e.clientX,y:e.clientY};
+  panVB=parseVB(svg.getAttribute(&#x27;viewBox&#x27;));
+  svg.style.cursor=&#x27;grabbing&#x27;;
+});
+window.addEventListener(&#x27;mousemove&#x27;, e=&gt;{
+  if(!isPanning) return;
+  const vb=panVB; const rect=svg.getBoundingClientRect();
+  const dx=(e.clientX-panStart.x)/rect.width*vb[2];
+  const dy=(e.clientY-panStart.y)/rect.height*vb[3];
+  svg.setAttribute(&#x27;viewBox&#x27;,`${vb[0]-dx} ${vb[1]-dy} ${vb[2]} ${vb[3]}`);
+});
+window.addEventListener(&#x27;mouseup&#x27;,()=&gt;{isPanning=false;svg.style.cursor=&#x27;grab&#x27;});
+
+// ── Layer toggle ───────────────────────────────────────────────────────────
+function setLayer(layer, btn){
+  currentLayer=layer;
+  document.querySelectorAll(&#x27;#toolbar .btn&#x27;).forEach(b=&gt;{if([&#x27;ALL&#x27;,&#x27;⚡ POWER&#x27;,&#x27;📷 DATA&#x27;,&#x27;📡 COMMS&#x27;].some(t=&gt;b.textContent.includes(t))) b.classList.remove(&#x27;active&#x27;)});
+  if(btn) btn.classList.add(&#x27;active&#x27;);
+  applyVisibility();
+}
+function setPhase(p){
+  currentPhase=p;
+  [1,2,3,4].forEach(n=&gt;{
+    const b=document.getElementById(`p${n}btn`);
+    if(b) b.classList.toggle(&#x27;phase-active&#x27;,n===p);
+  });
+  applyVisibility();
+}
+function applyVisibility(){
+  document.querySelectorAll(&#x27;[class*=&quot;layer-&quot;]&#x27;).forEach(el=&gt;{
+    const cl=el.classList;
+    const layer = [...cl].find(c=&gt;c.startsWith(&#x27;layer-&#x27;))?.replace(&#x27;layer-&#x27;,&#x27;&#x27;);
+    const phase = parseInt([...cl].find(c=&gt;c.startsWith(&#x27;phase-&#x27;))?.replace(&#x27;phase-&#x27;,&#x27;&#x27;))||1;
+    const layerOk = currentLayer===&#x27;all&#x27; || layer===currentLayer;
+    const phaseOk = phase&lt;=currentPhase;
+    el.style.display = (layerOk&amp;&amp;phaseOk)?&#x27;&#x27;:&#x27;none&#x27;;
+  });
+}
+
+// ── Component panel ────────────────────────────────────────────────────────
+function showPanel(id, name, detail){
+  document.getElementById(&#x27;p-name&#x27;).textContent=name;
+  document.getElementById(&#x27;p-spec&#x27;).textContent=detail.spec||&#x27;—&#x27;;
+  document.getElementById(&#x27;p-buy&#x27;).textContent=detail.buy||&#x27;—&#x27;;
+  document.getElementById(&#x27;p-conn&#x27;).textContent=detail.connects||&#x27;—&#x27;;
+  document.getElementById(&#x27;panel&#x27;).classList.add(&#x27;open&#x27;);
+}
+function closePanel(){document.getElementById(&#x27;panel&#x27;).classList.remove(&#x27;open&#x27;)}
+
+// ── Zone hints ─────────────────────────────────────────────────────────────
+function toggleZoneHints(){
+  zonesVisible=!zonesVisible;
+  document.querySelectorAll(&#x27;.zone-rect&#x27;).forEach(r=&gt;{r.style.opacity=zonesVisible?&#x27;1&#x27;:&#x27;0&#x27;});
+  document.getElementById(&#x27;zone-hint-btn&#x27;).classList.toggle(&#x27;active&#x27;,zonesVisible);
+}
+
+applyVisibility();
+
+// ── Highlight helpers ────────────────────────────────────────────────────────
+function pulseNode(nodeId, delay) {
+  delay = delay || 0;
+  setTimeout(function() {
+    var n = document.querySelector(&#x27;[data-id=&quot;&#x27; + nodeId + &#x27;&quot;]&#x27;);
+    if (!n) return;
+    n.style.transition = &#x27;filter .4s&#x27;;
+    n.style.filter = &#x27;drop-shadow(0 0 22px #fff) drop-shadow(0 0 12px #58a6ff)&#x27;;
+    setTimeout(function() { n.style.filter = &#x27;&#x27;; }, 3200);
+  }, delay);
+}
+function pulseWire(wireId, delay) {
+  delay = delay || 0;
+  setTimeout(function() {
+    var g = document.getElementById(&#x27;wire-&#x27; + wireId);
+    if (!g) return;
+    var pls = g.querySelectorAll(&#x27;polyline&#x27;);
+    pls.forEach(function(p) {
+      p.style.transition = &#x27;filter .4s, opacity .4s&#x27;;
+      p.style.filter = &#x27;drop-shadow(0 0 12px #fff) brightness(2.5)&#x27;;
+      p.style.opacity = &#x27;1&#x27;;
+      setTimeout(function() { p.style.filter = &#x27;&#x27;; p.style.opacity = &#x27;&#x27;; }, 3200);
+    });
+  }, delay);
+}
+
+// ── postMessage bridge ────────────────────────────────────────────────────────
+window.addEventListener(&#x27;message&#x27;, function(e) {
+  if (!e.data) return;
+
+  // BOM tab single-node highlight
+  if (e.data.type === &#x27;highlight&#x27;) {
+    var node = document.querySelector(&#x27;[data-id=&quot;&#x27; + e.data.nodeId + &#x27;&quot;]&#x27;);
+    if (node) {
+      var cx = parseFloat(node.getAttribute(&#x27;cx&#x27;));
+      var cy = parseFloat(node.getAttribute(&#x27;cy&#x27;));
+      animateVB((cx-180) + &#x27; &#x27; + (cy-130) + &#x27; 360 280&#x27;);
+      pulseNode(e.data.nodeId);
+      setTimeout(function() { node.dispatchEvent(new MouseEvent(&#x27;click&#x27;, {bubbles:true})); }, 300);
+    }
+  }
+
+  // Walkthrough step: zoom zone + highlight nodes + wires
+  if (e.data.type === &#x27;walkthrough&#x27;) {
+    var zone  = e.data.zone  || &#x27;full&#x27;;
+    var nodes = e.data.nodes || [];
+    var wires = e.data.wires || [];
+    var ph    = e.data.phase;
+    if (ph) setPhase(ph);
+    if (ZONES[zone]) animateVB(ZONES[zone]);
+    document.querySelectorAll(&#x27;.comp-node&#x27;).forEach(function(n) { n.style.filter = &#x27;&#x27;; });
+    nodes.forEach(function(id, i) { pulseNode(id, i * 150); });
+    wires.forEach(function(id, i) { pulseWire(id, i * 80); });
+    if (nodes[0]) setTimeout(function() {
+      var n = document.querySelector(&#x27;[data-id=&quot;&#x27; + nodes[0] + &#x27;&quot;]&#x27;);
+      if (n) n.dispatchEvent(new MouseEvent(&#x27;click&#x27;, {bubbles:true}));
+    }, 350);
+  }
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;"
+                            style="width:100%;height:100%;border:none;background:#0d1117;"
+                            title="Project Spectre Interactive Schematic">
+                    </iframe>
+                </div>
+                <p style="margin-top:10px;color:var(--text-muted);font-size:0.8rem;">
+                    💡 Tip: <a href="../06_Wiring_Diagrams/spectre_interactive.html" target="_blank" style="color:var(--accent);">Open full-screen in new tab</a> for the best experience.
+                </p>
+            
+            <!-- WALKTHROUGH -->
+            <div id="spectre-walkthrough" style="margin-top:32px;">
+              <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">&#128249; Installation Walkthrough</h2>
+              <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;">
+                Click <strong>&#9654; Focus</strong> on any step to zoom the schematic above and highlight
+                the relevant nodes and wire runs. Component names in text are also clickable.
+              </p>
+
+              <!-- PH1 header -->
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;margin-bottom:12px;">
+                <span style="font-size:1.5rem;font-weight:900;color:var(--accent);">1</span>
+                <div>
+                  <div style="font-weight:800;font-size:1rem;">Phase 1 &mdash; Front Cam + Full Backend</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);">Power &middot; Compute &middot; 4G &middot; Front camera &middot; First boot</div>
+                </div>
+              </div>
+
+              <!-- Step 1 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">1</div>
+                <div>
+                  <div class="wt-step-title">Power Entry &mdash; Fusebox Tap</div>
+                  <div class="wt-step-text">
+                    Scirocco fusebox is on the <strong>driver&rsquo;s right</strong> (RHD). Fit two Add-a-Circuit taps:
+                    <span class="wt-node" onclick="focusSchNode('fusebox')">one constant 12V</span> (rear demist slot, ~20A)
+                    and one ACC/ignition fuse (radio slot, ~10A). Run 22AWG red left across
+                    the underside of the dash. The
+                    <span class="wt-node" onclick="focusSchNode('gnd_bolt')">chassis ground bolt</span>
+                    is a bare M8 stub under the right dash &mdash; sand clean before connecting.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag red">12V Constant</span>
+                    <span class="wt-tag orange">ACC Sense</span>
+                    <span class="wt-tag blue">Chassis GND</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'front',nodes:['fusebox','gnd_bolt'],wires:['pw1','pw2','gn1','gn2'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">2</div>
+                <div>
+                  <div class="wt-step-title">ESP32-C3 &mdash; Ignition Brain</div>
+                  <div class="wt-step-text">
+                    The <span class="wt-node" onclick="focusSchNode('esp32')">ESP32-C3 SuperMini</span>
+                    monitors the ACC wire. Ignition off = ACC drops to 0V = ESP32 fires a
+                    <strong>UART safe-shutdown</strong> to the Pi over TX/RX.
+                    Pi gets ~30s to flush its buffer and power down before UPS cuts.
+                    Flash the shutdown firmware onto the ESP32 before installing.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag orange">ACC &rarr; ESP32</span>
+                    <span class="wt-tag blue">UART &rarr; Pi</span>
+                    <span class="wt-tag green">UPS relay control</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'dashboard',nodes:['esp32','fusebox'],wires:['pw2','ua1','pw3'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">3</div>
+                <div>
+                  <div class="wt-step-title">UPS HAT + LiFePO4 Battery</div>
+                  <div class="wt-step-text">
+                    The <span class="wt-node" onclick="focusSchNode('ups')">Waveshare UPS HAT</span>
+                    takes 12V from the constant fuse, steps down to clean 5V/5A for the Pi,
+                    and bridges to the LiFePO4 battery for park-mode power.
+                    Mount on 3M Dual Lock in the glovebox void. Leave ventilation space.
+                    In a sudden power cut the UPS bridges to battery &mdash; Pi never drops.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag red">12V &rarr; 5V</span>
+                    <span class="wt-tag green">LiFePO4 bridge</span>
+                    <span class="wt-tag blue">Park mode</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'dashboard',nodes:['ups','gnd_bolt'],wires:['pw1','gn2','pw3','pw4'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">4</div>
+                <div>
+                  <div class="wt-step-title">Brain Install &mdash; Glovebox Void</div>
+                  <div class="wt-step-text">
+                    Remove glovebox (two Torx inside, two spring clips top, unplug light).
+                    Mount <span class="wt-node" onclick="focusSchNode('pi')">Pi CM5 IO Board</span>
+                    on 3M Dual Lock on the ceiling of the void. The
+                    <span class="wt-node" onclick="focusSchNode('nvme')">NVMe</span>
+                    plugs into the M.2 PCIe slot. The
+                    <span class="wt-node" onclick="focusSchNode('hub')">USB hub</span>
+                    into the USB-C host port &mdash; all cameras connect through this.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag blue">PCIe x1 NVMe</span>
+                    <span class="wt-tag green">USB 3.2 hub</span>
+                    <span class="wt-tag orange">UART shutdown</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'dashboard',nodes:['pi','nvme','hub'],wires:['pw4','dt1','dt2','ua1'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 5 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">5</div>
+                <div>
+                  <div class="wt-step-title">4G &mdash; Roof Antenna to Glovebox</div>
+                  <div class="wt-step-text">
+                    <span class="wt-node" onclick="focusSchNode('antenna')">Shark-fin antenna</span>
+                    through the roof (use existing grommet or drill 20mm).
+                    Route SMA coax down the passenger A-pillar trim into the glovebox.
+                    <span class="wt-node" onclick="focusSchNode('lte')">Quectel EC25-E</span>
+                    plugs into the hub. Insert Smarty SIM &mdash;
+                    <span class="wt-node" onclick="focusSchNode('cloud')">Tailscale</span>
+                    auto-connects to Hetzner relay on boot.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag purple">SMA coax RF</span>
+                    <span class="wt-tag blue">USB to hub</span>
+                    <span class="wt-tag green">4G &rarr; Tailscale</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'front',nodes:['antenna','lte','cloud'],wires:['rf1','rf2','cm1'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 6 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">6</div>
+                <div>
+                  <div class="wt-step-title">Front Camera &mdash; Mirror to Pi CSI</div>
+                  <div class="wt-step-text">
+                    <span class="wt-node" onclick="focusSchNode('cam_front')">IMX678</span>
+                    in a 3D-printed housing behind the rearview mirror, lens forward.
+                    FPC ribbon goes <strong>LEFT (passenger side)</strong> &mdash; never the curtain airbag side.
+                    Down the passenger A-pillar trim, into the glovebox, to
+                    <strong>Pi CSI port 0</strong>. Loop the ribbon once before the connector to
+                    avoid stress on the flex.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag blue">MIPI FPC ribbon</span>
+                    <span class="wt-tag orange">Passenger A-pillar</span>
+                    <span class="wt-tag red">&#9888; Away from airbag</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'front',nodes:['cam_front','pi'],wires:['fc1'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 7 -->
+              <div class="wt-step ph1">
+                <div class="wt-step-num">7</div>
+                <div>
+                  <div class="wt-step-title">&#9989; Phase 1 Complete &mdash; First Boot</div>
+                  <div class="wt-step-text">
+                    Ignition on:
+                    <strong>ACC &rarr; ESP32 &rarr; UPS enables 5V &rarr; Pi boots (~30s) &rarr; GStreamer records front cam</strong>.
+                    Access dashboard via Tailscale IP on your phone.
+                    Run <code style="color:var(--accent)">df -h</code> &mdash; confirm NVMe mounted and growing.
+                    Ignition off &mdash; watch clean UART shutdown (~35s, then UPS cuts).
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag green">&#10003; System proven</span>
+                    <span class="wt-tag blue">Recording + remote access live</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn" onclick="wtFocusSch({zone:'full',nodes:['pi','cam_front','lte','cloud'],wires:['fc1','pw4','rf1','rf2'],phase:1})">&#9654; Focus</button>
+              </div>
+
+              <!-- PH2 header -->
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-left:4px solid #9e6a03;border-radius:10px;margin:20px 0 12px;">
+                <span style="font-size:1.5rem;font-weight:900;color:#9e6a03;">2</span>
+                <div>
+                  <div style="font-weight:800;font-size:1rem;">Phase 2 &mdash; Side Cameras (B-Pillars)</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);">Passenger B-pillar &middot; Driver B-pillar &middot; Sill cabling</div>
+                </div>
+              </div>
+
+              <!-- Step 8 -->
+              <div class="wt-step ph2">
+                <div class="wt-step-num">8</div>
+                <div>
+                  <div class="wt-step-title">Left B-Pillar &mdash; Passenger Side</div>
+                  <div class="wt-step-text">
+                    Easier run. <span class="wt-node" onclick="focusSchNode('cam_left')">IMX307 passenger cam</span>
+                    clips into a 3D-printed housing at the base of the B-pillar trim.
+                    Shielded USB-C under left sill carpet forward to the hub. Tuck everything
+                    before re-clipping the rubber trim &mdash; no rattles.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag blue">USB-C left sill</span>
+                    <span class="wt-tag green">~1m run</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn ph2" onclick="wtFocusSch({zone:'bpillar',nodes:['cam_left','hub'],wires:['sc1'],phase:2})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 9 -->
+              <div class="wt-step ph2">
+                <div class="wt-step-num">9</div>
+                <div>
+                  <div class="wt-step-title">Right B-Pillar &mdash; Driver Side</div>
+                  <div class="wt-step-text">
+                    Longer run. <span class="wt-node" onclick="focusSchNode('cam_right')">IMX307 driver cam</span>
+                    cable goes under right sill, under rear bench trim, across to left sill,
+                    forward to hub. <strong>Critical:</strong> leave a 10cm service loop at the
+                    B-pillar &mdash; door sill flex will shear an unlooped cable over time.
+                    Always use shielded cable here.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag blue">USB-C right&rarr;left sill</span>
+                    <span class="wt-tag red">&#9888; 10cm service loop</span>
+                    <span class="wt-tag orange">~3m shielded</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn ph2" onclick="wtFocusSch({zone:'bpillar',nodes:['cam_right','hub'],wires:['sc2'],phase:2})">&#9654; Focus</button>
+              </div>
+
+              <!-- PH3 header -->
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-left:4px solid #3fb950;border-radius:10px;margin:20px 0 12px;">
+                <span style="font-size:1.5rem;font-weight:900;color:#3fb950;">3</span>
+                <div>
+                  <div style="font-weight:800;font-size:1rem;">Phase 3 &mdash; Rear Recording Camera</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);">Upper hatch &middot; C-pillar &middot; Headliner run</div>
+                </div>
+              </div>
+
+              <!-- Step 10 -->
+              <div class="wt-step ph3">
+                <div class="wt-step-num">10</div>
+                <div>
+                  <div class="wt-step-title">Rear Camera &mdash; Upper Hatch</div>
+                  <div class="wt-step-text">
+                    <span class="wt-node" onclick="focusSchNode('cam_rear')">IMX307 rear cam</span>
+                    in the upper hatch trim, pointing rearward. 140&deg;+ essential.
+                    USB-C forward along headliner edge, down C-pillar, along rear sill to hub.
+                    <strong>Critical:</strong> leave a 15cm service loop at the C-pillar &mdash;
+                    the tailgate opens fully and must have zero cable tension at any point.
+                    Spiral wrap the loop.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag green">USB-C headliner &rarr; C-pillar</span>
+                    <span class="wt-tag red">&#9888; 15cm hatch loop</span>
+                    <span class="wt-tag orange">~4m run</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn ph3" onclick="wtFocusSch({zone:'rear',nodes:['cam_rear','hub'],wires:['rc1'],phase:3})">&#9654; Focus</button>
+              </div>
+
+              <!-- PH4 header -->
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-left:4px solid #bc8cff;border-radius:10px;margin:20px 0 12px;">
+                <span style="font-size:1.5rem;font-weight:900;color:#bc8cff;">4</span>
+                <div>
+                  <div style="font-weight:800;font-size:1rem;">Phase 4 &mdash; MIB2 Reverse Integration</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);">Number plate cam &middot; CVBS &middot; OBDeleven coding</div>
+                </div>
+              </div>
+
+              <!-- Step 11 -->
+              <div class="wt-step ph4">
+                <div class="wt-step-num">11</div>
+                <div>
+                  <div class="wt-step-title">Number Plate Camera &mdash; CVBS to Glovebox</div>
+                  <div class="wt-step-text">
+                    <span class="wt-node" onclick="focusSchNode('cam_rplate')">CVBS fisheye cam</span>
+                    at the plate, powered from reverse light positive.
+                    4-core cable (composite + 12V + GND) up through boot sill, up C-pillar,
+                    to the <span class="wt-node" onclick="focusSchNode('cvbs')">CVBS switcher</span>
+                    in the glovebox.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag orange">CVBS composite</span>
+                    <span class="wt-tag red">Reverse light powered</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn ph4" onclick="wtFocusSch({zone:'rear',nodes:['cam_rplate','cvbs'],wires:['cv1'],phase:4})">&#9654; Focus</button>
+              </div>
+
+              <!-- Step 12 -->
+              <div class="wt-step ph4">
+                <div class="wt-step-num">12</div>
+                <div>
+                  <div class="wt-step-title">CVBS to MIB2 + OBDeleven Coding</div>
+                  <div class="wt-step-text">
+                    <span class="wt-node" onclick="focusSchNode('cvbs')">HDMI&rarr;CVBS adapter</span>
+                    from Pi HDMI0. Switcher routes plate cam or Pi to
+                    <span class="wt-node" onclick="focusSchNode('mib2')">MIB2 composite input</span>.
+                    <strong>Before this works:</strong> use OBDeleven or VCDS to enable the
+                    aftermarket camera input. With MIB Tools unlocked you can go deeper.
+                    Reverse view activates automatically on reverse gear signal.
+                  </div>
+                  <div class="wt-step-tags">
+                    <span class="wt-tag purple">HDMI&rarr;CVBS</span>
+                    <span class="wt-tag green">&#10003; Full 360&deg; system live</span>
+                    <span class="wt-tag blue">OBDeleven / VCDS</span>
+                  </div>
+                </div>
+                <button class="wt-focus-btn ph4" onclick="wtFocusSch({zone:'front',nodes:['cvbs','mib2'],wires:['cv1','cv2'],phase:4})">&#9654; Focus</button>
+              </div>
+            </div>
+</div>
+        </div>
+
+        <!-- ── INSTALLATION WALKTHROUGH ──────────────────────────────────── -->
+        <div id="tab-wiring" class="tab-content">
+            <h1>Lego Wiring Guide</h1>
+            <p>Visual block representation of the physical electrical connections.</p>
+
+            <div class="step-card">
+                <h3><span class="badge-num">1</span> Main Power (VCC & GND)</h3>
+                <div class="board-visual">
+                    <div class="component" style="border-color: #9b59b6;">Scirocco Fusebox<br>(12V Constant)</div>
+                    <div><div class="wire c-red"></div></div>
+                    <div class="component" style="border-color: #2ecc71;">UPS HAT<br><span class="pin c-red"></span> VIN+</div>
+                </div>
+                <div class="board-visual">
+                    <div class="component" style="border-color: #9b59b6;">Chassis Ground<br>(Metal Bolt)</div>
+                    <div><div class="wire c-black"></div></div>
+                    <div class="component" style="border-color: #2ecc71;">UPS HAT<br><span class="pin c-black"></span> GND-</div>
+                </div>
+                <p><strong>Action:</strong> Run thick 22AWG RED wire from the Constant fuse tap to UPS VIN. Run thick BLACK wire from a bare metal chassis bolt to UPS GND.</p>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="badge-num">2</span> Ignition Sense (The Trigger)</h3>
+                <div class="board-visual">
+                    <div class="component" style="border-color: #9b59b6;">Scirocco Fusebox<br>(12V ACC / Engine On)</div>
+                    <div><div class="wire c-yellow"></div></div>
+                    <div class="component" style="border-color: #e67e22;">ESP32-C3<br><span class="pin c-yellow"></span> GPIO 3</div>
+                </div>
+                <p><strong>Action:</strong> This is the brain's alarm clock. Solder the yellow wire from the ACC fuse tap through hole "3" on the ESP32. When the car turns off, this wire goes dead, telling the brain to enter Sentry mode.</p>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="badge-num">3</span> The Shutdown Data Link</h3>
+                <div class="board-visual">
+                    <div class="component" style="border-color: #e67e22;">ESP32-C3<br><span class="pin c-blue"></span> TX</div>
+                    <div><div class="wire c-blue"></div></div>
+                    <div class="component" style="border-color: #1abc9c;">Raspberry Pi CM5<br><span class="pin c-blue"></span> UART RX</div>
+                </div>
+                <p><strong>Action:</strong> Solder a blue jumper wire from ESP32 TX to the Pi's UART RX pin. This is how the ESP32 mathematically tells the Pi to safely turn off before cutting power.</p>
+            </div>
+            
+            <div class="step-card">
+                <h3><span class="badge-num">4</span> High-Speed Data Links</h3>
+                <div class="board-visual">
+                    <div class="component" style="border-color: #555;">Front Camera<br>(Sony IMX678)</div>
+                    <div><div class="wire" style="background:#ddd; width: 120px;">MIPI FPC Ribbon</div></div>
+                    <div class="component" style="border-color: #1abc9c;">Raspberry Pi CM5<br>CSI Port 0</div>
+                </div>
+                <p><strong>Action:</strong> Lift the black latch on the Pi, slide the flat ribbon cable in (metal contacts facing board), and click the latch down. Simple as Lego.</p>
+            </div>
+        </div>
+
+        <!-- FUSEBOX WIRING TAB -->
+        <div id="tab-fuse" class="tab-content">
+            <h1>Fusebox Integration Walkthrough</h1>
+            <p>How to safely extract power from the 2017 VW Scirocco driver-side fusebox without cutting factory wires.</p>
+
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <img class="gallery-img" src="/Users/jordanhill/.gemini/antigravity/brain/86020f1d-5729-41fa-a483-341d7ed26090/spectre_fusebox_panel_1775176748991.png" alt="Scirocco Fusebox">
+                    <div class="gallery-cap">1. Access Driver-Side Fusebox</div>
+                </div>
+                <div class="gallery-card">
+                    <img class="gallery-img" src="/Users/jordanhill/.gemini/antigravity/brain/86020f1d-5729-41fa-a483-341d7ed26090/spectre_fuse_tap_1775176763093.png" alt="Add-A-Circuit Fuse Tap">
+                    <div class="gallery-cap">2. Piggyback "Add-A-Circuit"</div>
+                </div>
+                <div class="gallery-card">
+                    <img class="gallery-img" src="/Users/jordanhill/.gemini/antigravity/brain/86020f1d-5729-41fa-a483-341d7ed26090/spectre_chassis_ground_1775176775629.png" alt="Chassis Ground Bolt">
+                    <div class="gallery-cap">3. Earth to Bare Metal Bolt</div>
+                </div>
+            </div>
+
+            <div class="step-card" style="margin-top: 30px;">
+                <h3><span class="badge-num">1</span> Find the Empty / Safe Slots</h3>
+                <ul>
+                    <li>Open the driver's side door and pry off the plastic end-panel of the dashboard to reveal the fusebox.</li>
+                    <li>Use a multimeter to find a <strong>Constant 12V</strong> fuse (usually a 12V socket or interior lights).</li>
+                    <li>Find an <strong>ACC 12V</strong> fuse (one that ONLY turns on when the engine is running, like the radio or wipers).</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="badge-num">2</span> Install the Piggyback Fuses</h3>
+                <ul>
+                    <li>Remove the original car fuse and plug it into the BOTTOM slot of the Piggyback tap.</li>
+                    <li>Plug a new 5A fuse into the TOP slot of the tap (this protects the dashcam).</li>
+                    <li>Plug the entire tap back into the car's fuse slot. Ensure the wire points DOWN.</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="badge-num">3</span> Route the Master Power Lines</h3>
+                <ul>
+                    <li>Crimp the thick RED wire to the piggyback tap's blue connector.</li>
+                    <li>Bolt the thick BLACK ground wire to a bare metal chassis bolt deep under the steering wheel.</li>
+                    <li>Zip-tie the red and black wires together and run them behind the radio console over to the passenger glovebox opening.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- INSTALLATION TAB -->
+        <div id="tab-install" class="tab-content">
+            <h1>Installation Walkthrough</h1>
+            
+            <div class="step-card">
+                <h3><span class="badge-num">1</span> Disassemble Glovebox</h3>
+                <ul>
+                    <li>Remove the 6x Torx T20 screws securing the VW Scirocco glovebox.</li>
+                    <li>Carefully unplug the passenger airbag switch and the glovebox light.</li>
+                    <li>Drop the unit out to expose the massive void behind the dashboard.</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="badge-num">2</span> Mount the Brain</h3>
+                <ul>
+                    <li>Take the 3D-printed Spectre Brain Box (containing Pi, NVMe, ESP32, and Battery).</li>
+                    <li>Apply strips of 3M Dual Lock (Industrial Velcro) to the top of the box.</li>
+                    <li>Press firmly against the flat plastic ceiling of the glovebox cavity.</li>
+                </ul>
+            </div>
+
+            <div class="step-card" style="border-color: var(--danger);">
+                <h3 style="color: var(--danger);"><span class="badge-num" style="background: var(--danger);">3</span> CAUTION: Route Front Camera</h3>
+                <ul>
+                    <li>Run the flat MIPI ribbon cable up the driver-side A-pillar.</li>
+                    <li><strong>CRITICAL:</strong> Ensure the ribbon runs BEHIND the curtain airbag, not in front of it. Tape it to the existing factory loom.</li>
+                    <li>Tuck across the front edge of the headliner to the rearview mirror.</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h3><span class="badge-num">4</span> Route Side Cameras</h3>
+                <ul>
+                    <li>Run the thick, shielded USB-C cables down to the driver and passenger side sill plates (under the carpet edge).</li>
+                    <li>Run them back to the B-Pillars, then straight up the pillar trim.</li>
+                    <li>Leave 10cm of slack at the top to plug into the 3D-printed IMX307 stealth housings.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3D CONCEPTS TAB -->
+        <div id="tab-concept" class="tab-content">
+            <h1>3D Print & Hardware Visuals</h1>
+            
+            <div class="step-card" style="border-color: var(--warning); text-align: center; padding: 50px 20px;">
+                <h3 style="color: var(--warning); justify-content: center;">⚠️ Awaiting Physical Vehicle Mockups</h3>
+                <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 15px auto 0;">
+                    AI image generation cannot accurately represent the extreme stealth and millimeter-perfect tolerances required for the Scirocco's interior. 
+                    <br><br>
+                    <strong>Next Step:</strong> Take real photographs of your interior (rearview mirror, B-pillars, and hatch trim) and draw markup lines where you want the housings. We will use those exact references to begin the Fusion360 CAD designs.
+                </p>
+            </div>
+        </div>
+
+        <!-- MASTER BOM TAB -->
+        <div id="tab-bom" class="tab-content">
+            <h1>Master Shopping List</h1>
+
+            <!-- Toolbar -->
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:12px;color:var(--text-muted);align-self:center;margin-right:4px;">PHASE:</span>
+                    <button class="bom-filter active" data-phase="all" onclick="bomFilter('phase','all',this)">All</button>
+                    <button class="bom-filter" data-phase="1" onclick="bomFilter('phase','1',this)">Ph1 — Front + Backend</button>
+                    <button class="bom-filter" data-phase="2" onclick="bomFilter('phase','2',this)">Ph2 — Side Cams</button>
+                    <button class="bom-filter" data-phase="3" onclick="bomFilter('phase','3',this)">Ph3 — Rear Cam</button>
+                    <button class="bom-filter" data-phase="4" onclick="bomFilter('phase','4',this)">Ph4 — MIB2 Reverse</button>
+                </div>
+                <div style="width:1px;height:28px;background:var(--border);"></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:12px;color:var(--text-muted);align-self:center;margin-right:4px;">CATEGORY:</span>
+                    <button class="bom-filter active" data-cat="all" onclick="bomFilter('cat','all',this)">All</button>
+                    <button class="bom-filter" data-cat="cameras" onclick="bomFilter('cat','cameras',this)">📷 Cameras</button>
+                    <button class="bom-filter" data-cat="compute" onclick="bomFilter('cat','compute',this)">🧠 Compute</button>
+                    <button class="bom-filter" data-cat="power" onclick="bomFilter('cat','power',this)">⚡ Power</button>
+                    <button class="bom-filter" data-cat="comms" onclick="bomFilter('cat','comms',this)">📡 Comms</button>
+                    <button class="bom-filter" data-cat="cables" onclick="bomFilter('cat','cables',this)">🔌 Cables</button>
+                    <button class="bom-filter" data-cat="mounts" onclick="bomFilter('cat','mounts',this)">🖨 Mounts</button>
+                </div>
+                <div style="margin-left:auto;background:var(--bg-dark);border:1px solid var(--border);border-radius:8px;padding:8px 16px;">
+                    <span style="font-size:11px;color:var(--text-muted);">VISIBLE TOTAL</span><br>
+                    <span id="bom-total" style="font-size:1.4rem;font-weight:800;color:var(--accent);">£0</span>
+                </div>
+            </div>
+
+            <!-- BOM Items -->
+            <div id="bom-grid" style="display:grid;grid-template-columns:1fr;gap:10px;">
+
+                <!-- Phase 1 — Cameras -->
+                <div class="bom-item" data-phase="1" data-cat="cameras" data-low="45" data-high="65" data-node="cam_front">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📷</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Front Camera — Sony IMX678 STARVIS2 4K <span style="font-size:10px;color:#238636;font-weight:700;">[PHASE 1 PRIORITY]</span></div>
+                        <div class="bom-spec">
+                            MIPI CSI-2 FPC ribbon, M12 lens mount — search "IMX678 FPC MIPI camera module".<br>
+                            ⚠️ <strong>Comes with a lens pre-fitted</strong> (usually 60°–90° — too narrow for dashcam). When ordering, look for a <strong>FOV / Angle of View dropdown</strong> and select <strong>140° or wider</strong>. Vendors: ELP, SincereFirst. FPC ribbon ≥ 15cm. No separate lens needed if you get the right FOV at order.
+                        </div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Cameras</span><span class="tag-where">AliExpress</span></div>
+                    </div>
+                    <div class="bom-price">£45–65</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_front')">🔗 Schematic</button>
+                        <a href="https://www.aliexpress.com/w/wholesale-IMX678-MIPI-FPC-camera.html" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="2" data-cat="cameras" data-low="10" data-high="15" data-node="cam_left">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📷</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Side Cameras ×2 — Sony IMX307 STARVIS 1080p USB <span style="font-size:10px;color:#9e6a03;font-weight:700;">[PHASE 2]</span></div>
+                        <div class="bom-spec">
+                            USB 2.0 UVC compact board modules — search "IMX307 USB camera module small".<br>
+                            ⚠️ <strong>Also come with lens pre-fitted.</strong> Check the FOV before buying — select <strong>140°+ wide angle</strong> in the listing options. 2 units needed (one per B-pillar). Behind window tint so wide is essential.
+                        </div>
+                        <div class="bom-tags"><span class="tag-phase2">Phase 2</span><span class="tag-cat">Cameras</span><span class="tag-where">AliExpress</span></div>
+                    </div>
+                    <div class="bom-price">£20–30</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_left')">🔗 Schematic</button>
+                        <a href="https://www.aliexpress.com/w/wholesale-IMX307-USB-camera-module.html" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="cameras" data-low="3" data-high="8" data-node="cam_front">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔭</div>
+                    <div class="bom-body">
+                        <div class="bom-name">M12 Replacement Lenses — 140°–170° FOV <span style="font-size:10px;color:#9e6a03;font-weight:600;">[BACKUP ONLY]</span></div>
+                        <div class="bom-spec">
+                            Only needed if the camera module you ordered came with a narrow lens (60°–90°). M12 is a standard thread — the pre-fitted lens unscrews in seconds.<br>
+                            Front: must be <strong>1/1.8" sensor format</strong> for IMX678 (1/3" will vignette badly). Sides: 1/3" or 1/4" for IMX307. Include IR-cut filter.<br>
+                            💡 If you selected 140°+ when ordering the camera, <strong>skip this item.</strong>
+                        </div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Cameras</span><span class="tag-where">AliExpress — ~£3–5 each</span></div>
+                    </div>
+                    <div class="bom-price">£3–8 ea</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_front')">🔗 Schematic</button>
+                        <a href="https://www.aliexpress.com/w/wholesale-M12-lens-170-degree-1-1.8.html" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <!-- Phase 1 — Compute -->
+                <div class="bom-item" data-phase="1" data-cat="compute" data-low="50" data-high="60" data-node="pi">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🧠</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Raspberry Pi CM5 Lite — 4GB RAM</div>
+                        <div class="bom-spec">CM5 Lite (no eMMC — uses our NVMe). With WiFi 6 + Bluetooth. Official IO Board required separately.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Compute</span><span class="tag-where">PiHut UK ⚡ fast</span></div>
+                    </div>
+                    <div class="bom-price">£50–60</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('pi')">🔗 Schematic</button>
+                        <a href="https://thepihut.com/products/raspberry-pi-compute-module-5" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="compute" data-low="25" data-high="35" data-node="pi">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🧠</div>
+                    <div class="bom-body">
+                        <div class="bom-name">CM5 IO Board — Official Raspberry Pi</div>
+                        <div class="bom-spec">Provides PCIe x1 slot (NVMe), 2× CSI ports, 2× USB 3.0, GPIO. Required to use CM5.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Compute</span><span class="tag-where">PiHut UK ⚡ fast</span></div>
+                    </div>
+                    <div class="bom-price">£25–35</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('pi')">🔗 Schematic</button>
+                        <a href="https://thepihut.com/products/raspberry-pi-cm5-io-board" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="compute" data-low="40" data-high="55" data-node="nvme">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">💾</div>
+                    <div class="bom-body">
+                        <div class="bom-name">NVMe SSD — Samsung 980 PRO 512GB</div>
+                        <div class="bom-spec">PCIe Gen 3 M.2 2280. TLC only (not QLC) for write endurance. ~3500 MB/s read. Handles continuous 4K write.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Compute</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£40–55</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('nvme')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=Samsung+980+PRO+512GB+NVMe" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="compute" data-low="18" data-high="25" data-node="hub">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔌</div>
+                    <div class="bom-body">
+                        <div class="bom-name">USB 3.2 Gen 2 Hub — 4-port 10Gbps Aluminium</div>
+                        <div class="bom-spec">UGREEN or Anker. USB-C host connection. Aluminium shell for heat dissipation. 10Gbps for future-proofing Phase 2.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Compute</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£18–25</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('hub')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=UGREEN+USB+3.2+hub+10Gbps" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <!-- Phase 1 — Power -->
+                <div class="bom-item" data-phase="1" data-cat="power" data-low="80" data-high="120" data-node="ups">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔋</div>
+                    <div class="bom-body">
+                        <div class="bom-name">LiFePO4 Battery — 12V 6Ah with BMS</div>
+                        <div class="bom-spec">Must have built-in BMS, prismatic or cylindrical. Fogstar, TalentCell, EcoWorthy. Provides ~1hr parkmode buffer.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Power</span><span class="tag-where">Amazon UK ⚡ 1-2 days</span></div>
+                    </div>
+                    <div class="bom-price">£80–120</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('ups')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=12V+6Ah+LiFePO4+battery+BMS" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="power" data-low="15" data-high="25" data-node="ups">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">⚡</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Waveshare UPS HAT — 12V→5V 5A</div>
+                        <div class="bom-spec">Safe-shutdown GPIO signal, smooth handover from mains to battery. Fits Pi IO board form-factor.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Power</span><span class="tag-where">Amazon / Waveshare ⚡ 1-5 days</span></div>
+                    </div>
+                    <div class="bom-price">£15–25</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('ups')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=Waveshare+UPS+HAT" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="power" data-low="4" data-high="6" data-node="esp32">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">⚙️</div>
+                    <div class="bom-body">
+                        <div class="bom-name">ESP32-C3 SuperMini — Power Controller</div>
+                        <div class="bom-spec">Monitors ACC ignition signal. Fires UART safe-shutdown to Pi on ignition off. £4 AliExpress or Seeed XIAO ESP32-C3 £5 Amazon.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Power</span><span class="tag-where">AliExpress / Amazon</span></div>
+                    </div>
+                    <div class="bom-price">£4–6</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('esp32')">🔗 Schematic</button>
+                        <a href="https://www.aliexpress.com/w/wholesale-esp32-c3-supermini.html" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="power" data-low="5" data-high="8" data-node="fusebox">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔧</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Add-a-Circuit Dual Fuse Taps — Mini blade</div>
+                        <div class="bom-spec">2 taps: one ACC (switched), one 12V Constant. Verify Scirocco uses Mini LP fuses before ordering. Fits behind driver-side dash panel.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Power</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£5–8</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('fusebox')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=add-a-circuit+mini+fuse+tap" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <!-- Phase 1 — Comms -->
+                <div class="bom-item" data-phase="1" data-cat="comms" data-low="25" data-high="35" data-node="lte">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📡</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Quectel EC25-E — 4G LTE M.2 Modem</div>
+                        <div class="bom-spec">Europe-band LTE Cat4. 150Mbps DL. M.2 slot — direct upgrade to 5G RM520N later. AliExpress or Waveshare HAT version.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Comms</span><span class="tag-where">AliExpress / Waveshare</span></div>
+                    </div>
+                    <div class="bom-price">£25–35</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('lte')">🔗 Schematic</button>
+                        <a href="https://www.aliexpress.com/w/wholesale-Quectel-EC25-E-M2.html" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="comms" data-low="15" data-high="20" data-node="antenna">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📡</div>
+                    <div class="bom-body">
+                        <div class="bom-name">4G/GPS Shark-fin Antenna — Roof Mount</div>
+                        <div class="bom-spec">SMA connector, combo 4G+GPS. Roof-mount with cable routed through headliner. Cable run to glovebox ~2m.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Comms</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£15–20</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('antenna')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=shark+fin+4G+GPS+antenna+SMA" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="comms" data-low="6" data-high="10" data-node="lte">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📶</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Data SIM — IoT 1–5GB/month</div>
+                        <div class="bom-spec">Smarty £6/mo (1GB) or Three IoT plan. Data-only. Goes in Quectel modem. Set up Tailscale VPN on Pi before inserting.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Comms</span><span class="tag-where">Online — instant delivery</span></div>
+                    </div>
+                    <div class="bom-price">£6/mo</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('lte')">🔗 Schematic</button>
+                        <a href="https://smarty.co.uk" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <!-- Phase 1 — Cables -->
+                <div class="bom-item" data-phase="1" data-cat="cables" data-low="5" data-high="8" data-node="cam_front">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔌</div>
+                    <div class="bom-body">
+                        <div class="bom-name">MIPI CSI FPC Ribbon — 22-pin 30–50cm</div>
+                        <div class="bom-spec">Match CM5 IO Board header pinout. 30cm for tight installs, 50cm for the run down A-pillar to glovebox.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Cables</span><span class="tag-where">Amazon / AliExpress</span></div>
+                    </div>
+                    <div class="bom-price">£5–8</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_front')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=MIPI+CSI+FPC+ribbon+22+pin" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="cables" data-low="12" data-high="18" data-node="cam_left">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔌</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Shielded USB-C Cables ×2 — 1.5m Active</div>
+                        <div class="bom-spec">For side cameras. Active shielded prevents 2.4GHz RF noise. 1.5m for the long driver-side run under sill carpet.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Cables</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£12–18</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_right')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=shielded+USB-C+cable+1.5m" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="1" data-cat="cables" data-low="10" data-high="14" data-node="fusebox">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔌</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Automotive Wire Kit — 22AWG Red + Black</div>
+                        <div class="bom-spec">5m each colour. For power trunk (fusebox → glovebox), chassis ground, ESP32 signal lines. Tesa 51608 loom tape to look factory.</div>
+                        <div class="bom-tags"><span class="tag-phase1">Phase 1</span><span class="tag-cat">Cables</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£10–14</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('fusebox')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=22AWG+automotive+wire+red+black" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <!-- Phase 3 — Rear cam -->
+                <div class="bom-item" data-phase="3" data-cat="cameras" data-low="25" data-high="40" data-node="cam_rear">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📷</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Rear Cam — Sony IMX307 1080p USB <span style="font-size:10px;color:#9e6a03;font-weight:700;">[PHASE 3]</span></div>
+                        <div class="bom-spec">Upper hatch trim mount for recording. Wide 140° FOV. USB-C shielded run along headliner → C-pillar → sill → hub.</div>
+                        <div class="bom-tags"><span class="tag-phase2">Phase 3</span><span class="tag-cat">Cameras</span><span class="tag-where">AliExpress</span></div>
+                    </div>
+                    <div class="bom-price">£25–40</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_rear')">🔗 Schematic</button>
+                        <a href="https://www.aliexpress.com/w/wholesale-IMX307-USB-camera-module.html" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <!-- Phase 4 — Number plate cam + MIB2 -->
+                <div class="bom-item" data-phase="4" data-cat="cameras" data-low="12" data-high="18" data-node="cam_rplate">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">🔙</div>
+                    <div class="bom-body">
+                        <div class="bom-name">Number Plate Reversing Cam — CVBS 170° fisheye <span style="font-size:10px;color:#9e6a03;font-weight:700;">[PHASE 4]</span></div>
+                        <div class="bom-spec">Dedicated reverse-view camera, CVBS composite output. Mounts at number plate. Triggered by reverse light wire. Feeds MIB2 (MIB Tools unlocked) via CVBS switcher.</div>
+                        <div class="bom-tags"><span class="tag-phase2">Phase 4</span><span class="tag-cat">Cameras</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£12–18</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cam_rplate')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=number+plate+reversing+camera+CVBS" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+                <div class="bom-item" data-phase="4" data-cat="comms" data-low="8" data-high="14" data-node="cvbs">
+                    <div class="bom-check"><input type="checkbox" class="bom-cb"></div>
+                    <div class="bom-icon">📺</div>
+                    <div class="bom-body">
+                        <div class="bom-name">HDMI→CVBS Adapter + 4-way CVBS Switcher <span style="font-size:10px;color:#9e6a03;font-weight:700;">[PHASE 4]</span></div>
+                        <div class="bom-spec">Pi HDMI0 → CVBS adapter for screen output. 4-way switcher lets you toggle between Pi stream and number plate cam on MIB2 display. Requires OBDeleven/VCDS coding to enable CVBS input on MIB2.</div>
+                        <div class="bom-tags"><span class="tag-phase2">Phase 4</span><span class="tag-cat">Comms</span><span class="tag-where">Amazon UK ⚡ next day</span></div>
+                    </div>
+                    <div class="bom-price">£8–14</div>
+                    <div class="bom-actions">
+                        <button class="bom-btn-schema" onclick="highlightNode('cvbs')">🔗 Schematic</button>
+                        <a href="https://www.amazon.co.uk/s?k=HDMI+to+CVBS+composite+adapter" target="_blank" class="bom-btn-buy">Buy →</a>
+                    </div>
+                </div>
+
+            </div><!-- /bom-grid -->
+
+            <!-- Cost Summary -->
+            <div style="margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="step-card" style="padding:20px;">
+                    <h3 style="margin-bottom:12px;">Phase 1 Totals</h3>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:6px 16px;font-size:13px;">
+                        <span style="color:var(--text-muted);">Cameras + Lenses</span><span style="color:var(--accent);">£78–116</span>
+                        <span style="color:var(--text-muted);">Compute (Pi + IO + NVMe + Hub)</span><span style="color:var(--accent);">£133–175</span>
+                        <span style="color:var(--text-muted);">Power (Battery + UPS + ESP + Fuses)</span><span style="color:var(--accent);">£104–159</span>
+                        <span style="color:var(--text-muted);">Comms (4G + Antenna + SIM)</span><span style="color:var(--accent);">£46–65</span>
+                        <span style="color:var(--text-muted);">Cables + Wire + Tape</span><span style="color:var(--accent);">£27–40</span>
+                        <span style="font-weight:700;border-top:1px solid var(--border);padding-top:6px;">TOTAL HARDWARE</span>
+                        <span style="font-weight:700;color:var(--accent);border-top:1px solid var(--border);padding-top:6px;">~£388–555</span>
+                    </div>
+                </div>
+                <div class="step-card" style="padding:20px;">
+                    <h3 style="margin-bottom:12px;">Phase 2 Additions</h3>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:6px 16px;font-size:13px;">
+                        <span style="color:var(--text-muted);">Rear cam (USB, hatch mount)</span><span style="color:var(--accent);">£25–40</span>
+                        <span style="color:var(--text-muted);">Number plate reverse cam (CVBS)</span><span style="color:var(--accent);">£12–18</span>
+                        <span style="color:var(--text-muted);">HDMI→CVBS + switcher</span><span style="color:var(--accent);">£8–14</span>
+                        <span style="color:var(--text-muted);">Running cost (SIM + VPS)</span><span style="color:var(--accent);">~£10/mo</span>
+                        <span style="font-weight:700;border-top:1px solid var(--border);padding-top:6px;">PHASE 2 ADD-ON</span>
+                        <span style="font-weight:700;color:var(--accent);border-top:1px solid var(--border);padding-top:6px;">~£45–72</span>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /tab-bom -->
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+
+        function wtFocusSch(step) {
+            var iframe = document.getElementById('spectre-schematic');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'walkthrough',
+                    zone: step.zone,
+                    nodes: step.nodes || [],
+                    wires: step.wires || [],
+                    phase: step.phase
+                }, '*');
+                iframe.scrollIntoView({behavior:'smooth', block:'start'});
+            }
+        }
+        function focusSchNode(nodeId) {
+            var iframe = document.getElementById('spectre-schematic');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'highlight', nodeId: nodeId }, '*');
+                iframe.scrollIntoView({behavior:'smooth', block:'start'});
+            }
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // ── BOM filtering ────────────────────────────────────────────────────
+        let activePhaseFilt = 'all', activeCatFilt = 'all';
+
+        function bomFilter(type, val, btn) {
+            if (type === 'phase') {
+                activePhaseFilt = val;
+                document.querySelectorAll('[data-phase-btn]').forEach(b => b.classList.remove('active'));
+            } else {
+                activeCatFilt = val;
+            }
+            if (btn) {
+                const group = btn.parentElement.querySelectorAll('.bom-filter');
+                group.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            let total = 0;
+            document.querySelectorAll('.bom-item').forEach(item => {
+                const phase = item.dataset.phase;
+                const cat   = item.dataset.cat;
+                const phaseOk = activePhaseFilt === 'all' || phase === activePhaseFilt;
+                const catOk   = activeCatFilt  === 'all' || cat   === activeCatFilt;
+                const show = phaseOk && catOk;
+                item.style.display = show ? 'grid' : 'none';
+                if (show) {
+                    const lo = parseFloat(item.dataset.low) || 0;
+                    const hi = parseFloat(item.dataset.high) || lo;
+                    total += (lo + hi) / 2;
+                }
+            });
+            document.getElementById('bom-total').textContent = '£' + Math.round(total);
+        }
+
+        // ── Schematic link bridge ──────────────────────────────────────────
+        function highlightNode(nodeId) {
+            // Switch to schematic tab
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-schema').classList.add('active');
+            document.querySelector('[onclick*="tab-schema"]').classList.add('active');
+            // Post message to schematic iframe
+            setTimeout(() => {
+                const frame = document.querySelector('#tab-schema iframe');
+                if (frame && frame.contentWindow) {
+                    frame.contentWindow.postMessage({ type: 'highlight', nodeId }, '*');
+                }
+            }, 200);
+        }
+
+        // Initial BOM total
+        bomFilter('phase', 'all', null);
+    </script>
+</body>
+</html>
